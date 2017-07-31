@@ -33,7 +33,7 @@ use SRESTO\Router;
 $router=new Router();
 
 $router->get("a=0",function($req,$res,$services){
-    echo $req['b'];
+    $res->send($req->param['b']);
 });
 $router->execute();
 ```
