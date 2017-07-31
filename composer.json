@@ -1,0 +1,18 @@
+{
+    "name": "thekoushik/sresto",
+    "description": "A very simple lightweight PHP REST Framework",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Koushik Seal",
+            "email": "thekoushik.universe@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "SRESTO\\": "src/"
+        }
+    }
+}
