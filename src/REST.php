@@ -9,7 +9,7 @@ class REST{
 							'DELETE'=>array(),
 							'error'=>array(
 								'404'=>function($req,$res,$s){$res->status(404)->send("Sorry! Page not found!");},
-								'500'=>function($req,$res,$s){$res->status(404)->send("Sorry! Internal server error!");}
+								'500'=>function($req,$res,$s){$res->status(500)->send("Sorry! Internal server error!");}
 							));
 	}
 	public function get($pattern,$cb){
