@@ -30,7 +30,7 @@ class Response{
         $this->headers[$key]=$val;
         return $this;
     }
-    public function end(){
+    public function flush(){
         if($this->flushed) return;
         foreach($this->headers as $key=>$val)
             header($key.": ".$val);

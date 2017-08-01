@@ -11,7 +11,12 @@ class Request{
         $this->method=$_SERVER['REQUEST_METHOD'];
         $this->query=$_SERVER['QUERY_STRING'];
         $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        $this->contentType=$_SERVER['CONTENT_TYPE'];
+        if(isset($_SERVER["CONTENT_TYPE"]))
+            $this->contentType=$_SERVER['CONTENT_TYPE'];
+        else{
+            $headers=apache_request_headers();
+            $this->contentType=isset($headers['Content-Type'])?$headers['Content-Type']:'text/plain';
+        }
         if($this->method==="GET") $this->param=&$_GET;
         else $this->param=array();
         switch($this->contentType){
