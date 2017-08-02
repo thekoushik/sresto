@@ -2,7 +2,8 @@
 namespace SRESTO;
 class REST{
 	protected $router;
-	public function __construct(){
+	protected $baseURL='';
+	public function __construct($baseurl=''){
 		$this->router=array('GET'=>array(),
 							'POST'=>array(),
 							'PUT'=>array(),
@@ -11,6 +12,7 @@ class REST{
 								'404'=>function($req,$res,$s){$res->status(404)->send("Sorry! Page not found!");},
 								'500'=>function($req,$res,$s){$res->status(500)->send("Sorry! Internal server error!");}
 							));
+		$this->baseURL=$baseurl;
 	}
 	public function get($pattern,$cb){
 		$this->router['GET'][$pattern]=$cb;

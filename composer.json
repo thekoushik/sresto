@@ -1,7 +1,7 @@
 {
     "name": "thekoushik/sresto",
     "description": "A very simple lightweight PHP REST Framework",
-    "type": "project",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
