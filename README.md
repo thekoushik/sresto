@@ -32,8 +32,8 @@ use SRESTO\Router;
 
 $router=new Router();
 
-$router->get("a=0",function($req,$res,$services){
-    $res->send($req->param['b']);
+$router->get("/hello",function($req,$res,$s){
+    $res->message("Hello World");
 });
 $router->execute();
 ```
@@ -41,10 +41,10 @@ $router->execute();
 Test it
 
 ``` bash
-$ curl -GET "http://localhost/helloworld/index.php?a=0&b=Hello%20World"
+$ curl -GET "http://localhost/helloworld/?/hello"
 ```
 will print
 
 ```
-Hello World
+{"message":"Hello World"}
 ```

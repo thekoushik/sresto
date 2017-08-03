@@ -7,7 +7,7 @@ class Response{
         'Content-type'=>'text/plain',
         'X-Powered-By'=>'SRESTO'
         );
-    private $flushed=FALSE;
+    protected $flushed=FALSE;
     //public function __construct(){}
     public function status($st){
         $this->status=$st;
@@ -17,6 +17,11 @@ class Response{
         $this->response=$text;
         return $this;
     }
+    /*public function xml($obj){
+        $this->headers['Content-type']='application/xml';
+        $this->response=xml_encode($obj);
+        return $this;
+    }*/
     public function json($obj){
         $this->headers['Content-type']='application/json';
         $this->response=json_encode($obj);
@@ -38,5 +43,12 @@ class Response{
             http_response_code($this->status);
         echo $this->response;
         $this->flushed=TRUE;
+    }
+    public function message($msg){
+        $this->json(array('message'=>$msg));
+        return $this;
+    }
+    protected function isObject($val){
+        return is_array($val)?TRUE:(is_scalar($val)?FALSE:TRUE);
     }
 }

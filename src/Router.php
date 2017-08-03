@@ -4,7 +4,7 @@
 	A very lightweight REST for php
 */
 namespace SRESTO;
-class Router extends REST{
+class Router extends BaseRouter{
 	protected $request=NULL;
 	protected $request_type='';
 	private $throw_on_unknown_request=FALSE;
@@ -31,7 +31,7 @@ class Router extends REST{
 		$url=$req->query;
 		$found=FALSE;
 		if($res==NULL)
-			$res=new Response();
+			$res=new RESTResponse();
 		$base=$this->baseURL;
 		try{
 			foreach ($this->subRouters as $pattern => $subRouter) {

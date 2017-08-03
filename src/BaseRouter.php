@@ -1,6 +1,6 @@
 <?php
 namespace SRESTO;
-class REST{
+class BaseRouter{
 	protected $router;
 	protected $baseURL='';
 	public function __construct($baseurl=''){
@@ -25,6 +25,9 @@ class REST{
 	}
 	public function delete($pattern,$cb){
 		$this->router['DELETE'][$pattern]=$cb;
+	}
+	public function patch($pattern,$cb){
+		$this->router['PATCH'][$pattern]=$cb;
 	}
 	public function error($code,$cb){
 		$this->router['error'][strval($code)]=$cb;

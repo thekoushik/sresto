@@ -8,12 +8,10 @@ class Request{
     public $contentType;
     public $contentLength;
     public $param;
+    public $accept;
     
     public function __construct(){
-        $this->method=$_SERVER['REQUEST_METHOD'];
-        $this->query=$_SERVER['QUERY_STRING'];
-        $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        $this->fetchContentInfo();
+        $this->fetchHeaders();
         if($this->method==="GET") $this->param=&$_GET;
         else $this->param=array();
         switch($this->contentType){
@@ -30,7 +28,10 @@ class Request{
                 $this->body=file_get_contents("php://input");
         }
     }
-    private function fetchContentInfo(){
+    private function fetchHeaders(){
+        $this->method=$_SERVER['REQUEST_METHOD'];
+        $this->query=$_SERVER['QUERY_STRING'];
+        $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $headers=apache_request_headers();
         if(isset($_SERVER["CONTENT_TYPE"]))
             $this->contentType=$_SERVER['CONTENT_TYPE'];
@@ -40,6 +41,7 @@ class Request{
             $this->contentLength=intval($_SERVER['CONTENT_LENGTH']);
         else 
             $this->contentLength=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
+        $this->accept=isset($headers['Accept'])?$headers['Accept']:'text/plain';
     }
     public function isJSON(){
         return ($this->contentType==="application/json");
