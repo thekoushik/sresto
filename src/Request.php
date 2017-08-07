@@ -12,8 +12,10 @@ class Request{
     
     public function __construct(){
         $this->fetchHeaders();
-        if($this->method==="GET") $this->param=&$_GET;
-        else $this->param=array();
+        /*if($this->method==="GET")
+            $this->param=&$_GET;
+        else*/
+            $this->param=array();
         switch($this->contentType){
             case "application/json":
                 $this->body = json_decode(file_get_contents('php://input'), true);

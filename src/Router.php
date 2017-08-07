@@ -22,8 +22,11 @@ class Router extends BaseRouter{
 		$this->services[$name]=$service;
 	}
 	private function matchURL($url,$pattern){
-		//preg_match_all($pattern,$url,$out,PREG_PATTERN_ORDER);
-		return strpos($url,$pattern)===0;
+		$result=preg_match_all("/^".$pattern."$/",$url,$out,PREG_PATTERN_ORDER);
+		if($result===FALSE) echo $pattern;
+		if($result<1) return NULL;
+		return $out;
+		//return strpos($url,$pattern)===0;
 	}
 	public function execute($req=NULL,$res=NULL,$flush=TRUE){
 		if($req==NULL)
@@ -35,17 +38,19 @@ class Router extends BaseRouter{
 		$base=$this->baseURL;
 		try{
 			foreach ($this->subRouters as $pattern => $subRouter) {
-				if($this->matchURL($url,$base.$pattern)){
+				if(strpos($url,$base.$pattern)===0){//if($this->matchURL($url,$base.$pattern)){
 					$found=$subRouter->execute($req,$res,FALSE);
 				}
 			}
 			if(!$found){
 				foreach ($this->router[$req->method] as $pattern => $cb) {
-					if($this->matchURL($url,$base.$pattern)){
-						if(is_callable($cb))
-							call_user_func($cb,$req,$res,$this->services);//$cb($req,$res,$this->services);
-						else
-							$res->send($cb);
+					$result=$this->matchURL($url,$pattern);
+					if($result!=NULL){
+						if(is_callable($cb['fn'])){
+							$req->param=$this->createParamFromMatch($result,$cb['params']);
+							call_user_func($cb['fn'],$req,$res,$this->services);//$cb($req,$res,$this->services);
+						}else
+							$res->send($cb['fn']);
 						$found=TRUE;
 						break;
 					}
