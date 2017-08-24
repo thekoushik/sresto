@@ -38,4 +38,18 @@ class RESTResponse extends Response{
 		$this->json(array("message"=>"Validation errors in your request","errors"=>$error_list));
 		return $this;
 	}
+	public function noCache(){
+		$this->header('Cache-Control','no-store');
+		$this->header('Pragma','no-cache');
+		return $this;
+	}
+	public function sendToken($access_token,$refresh_token=null,$type='Bearer',$expires_in=3600){
+		$this->json([
+                "access_token"=>$access_token,
+                "token_type"=>$type,
+                "expires_in"=>$expires_in,
+                "refresh_token"=>$refresh_token
+            ]);
+		return $this;
+	}
 }

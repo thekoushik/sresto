@@ -9,14 +9,16 @@ class BaseRouter{
 		'alphanumerics'=>"[a-zA-Z0-9]+"
 		];
 	public function __construct($baseurl=''){
-		$this->router=array('GET'=>array(),
-							'POST'=>array(),
-							'PUT'=>array(),
-							'DELETE'=>array(),
-							'error'=>array(
+		$this->router=['GET'=>[],
+							'POST'=>[],
+							'PUT'=>[],
+							'DELETE'=>[],
+							'PATCH'=>[],
+							'HEAD'=>[],
+							'error'=>[
 								'404'=>function($req,$res,$s){$res->status(404)->send("Sorry! Page not found!");},
 								'500'=>function($req,$res,$s){$res->status(500)->send("Sorry! Internal server error!");}
-							));
+							]];
 		$this->baseURL=$baseurl;
 	}
 	private function createPattern($pat,&$param){
@@ -44,7 +46,7 @@ class BaseRouter{
 		return $newparam;
 	}
 	protected function createParamFromMatch($matches,$param){
-		$newparam=array();
+		$newparam=[];
 		if($param==NULL) return $newparam;
 		foreach($param as $key => $value){
 			if(isset($matches[$key])){
@@ -55,13 +57,17 @@ class BaseRouter{
 		}
 		return $newparam;
 	}
-	/*public function registerURLRegex($name,$regex=NULL){
-		if()
-	}*/
+	public function registerURLRegex($name,$regex){
+		if(strlen($name)<1)
+			throw new \Exception("name must not be blank.");
+		if(strlen($regex)<1)
+			throw new \Exception("regex must not be blank.");
+		$this->named_regex[$name]=$regex;
+	}
 	private function registerMethod($method,$pattern,$cb,$params){
 		if($params==NULL) $params=[];
 		$pat=$this->createPattern($this->baseURL.$pattern,$params);
-		$this->router[$method][$pat]=array('fn'=>$cb,'params'=>$params);
+		$this->router[$method][$pat]=['fn'=>$cb,'params'=>$params];
 	}
 	public function get($pattern,$cb,$params=NULL){
 		$this->registerMethod('GET',$pattern,$cb,$params);
@@ -77,6 +83,9 @@ class BaseRouter{
 	}
 	public function patch($pattern,$cb,$params=NULL){
 		$this->registerMethod('PATCH',$pattern,$cb,$params);
+	}
+	public function head($pattern,$cb,$params=NULL){
+		$this->registerMethod('HEAD',$pattern,$cb,$params);
 	}
 	public function error($code,$cb){
 		$this->router['error'][strval($code)]=$cb;

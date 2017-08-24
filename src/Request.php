@@ -9,6 +9,9 @@ class Request{
     public $contentLength;
     public $param;
     public $accept;
+    public $token_type=null;
+    public $token=null;
+    public $headers;
     
     public function __construct(){
         $this->fetchHeaders();
@@ -35,6 +38,7 @@ class Request{
         $this->query=$_SERVER['QUERY_STRING'];
         $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $headers=apache_request_headers();
+        $this->headers=$headers;
         if(isset($_SERVER["CONTENT_TYPE"]))
             $this->contentType=$_SERVER['CONTENT_TYPE'];
         else
@@ -44,6 +48,18 @@ class Request{
         else 
             $this->contentLength=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
         $this->accept=isset($headers['Accept'])?$headers['Accept']:'text/plain';
+        if(isset($headers['Authorization'])){
+            $t=explode(" ",trim($headers['Authorization']),2);
+            $this->token_type=$t[0];
+            if($this->token_type=="Basic"){
+                $b=explode(':',base64_decode($t[1]),2);
+                if(count($b)>1){
+                    $this->token=['client_id'=>$b[0],'client_secret'=>$b[1]];
+                }else
+                    $this->token=['client_id'=>null,'client_secret'=>null];
+            }else
+                $this->token=$t[1];
+        }
     }
     public function isJSON(){
         return ($this->contentType==="application/json");
