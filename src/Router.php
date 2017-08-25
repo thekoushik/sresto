@@ -36,6 +36,8 @@ class Router extends BaseRouter{
 		if($res==NULL)
 			$res=new RESTResponse();
 		$base=$this->baseURL;
+		if($flush)
+			$req->validate($res);
 		try{
 			foreach ($this->subRouters as $pattern => $subRouter) {
 				if(strpos($url,$base.$pattern)===0){//if($this->matchURL($url,$base.$pattern)){

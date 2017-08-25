@@ -52,4 +52,13 @@ class RESTResponse extends Response{
             ]);
 		return $this;
 	}
+	public function sendError($code,$error,$error_description=null){
+		$this->status=$code;
+		$this->header('Cache-Control','no-store');
+		$this->json([
+			'error'=>$error,
+			'error_description'=>$error_description
+		]);
+		return $this;
+	}
 }

@@ -1,5 +1,7 @@
 <?php
 namespace SRESTO;
+use SRESTO\Security\Authentication as Auth;
+
 class Request{
     public $method;
     public $body;
@@ -9,11 +11,11 @@ class Request{
     public $contentLength;
     public $param;
     public $accept;
-    public $token_type=null;
-    public $token=null;
+    public $auth;
     public $headers;
     
     public function __construct(){
+        $this->auth=new Auth();
         $this->fetchHeaders();
         /*if($this->method==="GET")
             $this->param=&$_GET;
@@ -48,17 +50,11 @@ class Request{
         else 
             $this->contentLength=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
         $this->accept=isset($headers['Accept'])?$headers['Accept']:'text/plain';
-        if(isset($headers['Authorization'])){
-            $t=explode(" ",trim($headers['Authorization']),2);
-            $this->token_type=$t[0];
-            if($this->token_type=="Basic"){
-                $b=explode(':',base64_decode($t[1]),2);
-                if(count($b)>1){
-                    $this->token=['client_id'=>$b[0],'client_secret'=>$b[1]];
-                }else
-                    $this->token=['client_id'=>null,'client_secret'=>null];
-            }else
-                $this->token=$t[1];
+        $this->auth->setHeader($headers);
+    }
+    public function validate($res){
+        if(isset($this->headers['Authorization'])){
+            $this->auth->validate($this,$res);
         }
     }
     public function isJSON(){
