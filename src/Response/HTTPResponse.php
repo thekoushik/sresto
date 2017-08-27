@@ -1,6 +1,6 @@
 <?php
-namespace SRESTO;
-class Response{
+namespace SRESTO\Response;
+class HTTPResponse{
     protected $status=200;
     protected $response='';
     protected $headers=array(
@@ -90,8 +90,5 @@ class Response{
     public function message($msg){
         $this->json(array('message'=>$msg));
         return $this;
-    }
-    protected function isObject($val){
-        return is_array($val)?TRUE:(is_scalar($val)?FALSE:TRUE);
     }
 }

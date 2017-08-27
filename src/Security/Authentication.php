@@ -42,5 +42,6 @@ class Authentication{
             $this->request['token']=$t[1];
         else
             $res->sendError(400,"unsupported_token","Unsupported token type '".$token_type."'.");;//throw new \Exception();
+        return true;//return false to stop route forwarding
     }
 }

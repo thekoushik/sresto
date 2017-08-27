@@ -1,26 +1,21 @@
 <?php
-namespace SRESTO;
-use SRESTO\Security\Authentication as Auth;
+namespace SRESTO\Request;
 
-class Request{
+class HTTPRequest{
     public $method;
     public $body;
     public $originalURL;
     public $query;
+    public $path;
     public $contentType;
     public $contentLength;
     public $param;
     public $accept;
-    public $auth;
     public $headers;
     
     public function __construct(){
-        $this->auth=new Auth();
         $this->fetchHeaders();
-        /*if($this->method==="GET")
-            $this->param=&$_GET;
-        else*/
-            $this->param=array();
+        $this->param=[];
         switch($this->contentType){
             case "application/json":
                 $this->body = json_decode(file_get_contents('php://input'), true);
@@ -37,7 +32,17 @@ class Request{
     }
     private function fetchHeaders(){
         $this->method=$_SERVER['REQUEST_METHOD'];
-        $this->query=$_SERVER['QUERY_STRING'];
+        $url=$_SERVER['QUERY_STRING'];
+        //parse url for query parameters
+        $i=strpos($url,"?");
+        if($i===false)
+            $this->query=[];
+        else{
+            parse_str(substr($url,$i+1),$this->query);
+            $url=substr($url,0,$i);
+        }
+        $this->path=$url;
+        
         $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $headers=apache_request_headers();
         $this->headers=$headers;
@@ -50,12 +55,6 @@ class Request{
         else 
             $this->contentLength=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
         $this->accept=isset($headers['Accept'])?$headers['Accept']:'text/plain';
-        $this->auth->setHeader($headers);
-    }
-    public function validate($res){
-        if(isset($this->headers['Authorization'])){
-            $this->auth->validate($this,$res);
-        }
     }
     public function isJSON(){
         return ($this->contentType==="application/json");

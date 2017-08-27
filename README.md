@@ -28,14 +28,13 @@ $ composer install
 ``` php
 require __DIR__ . '/vendor/autoload.php';
 
-use SRESTO\Router;
+use SRESTO\Application;
 
-$router=new Router();
-
-$router->get("/hello",function($req,$res,$s){
+$router=Application::createRouter();
+$router->get("/hello",function($req,$res){
     $res->message("Hello World");
 });
-$router->execute();
+Application::execute();
 ```
 
 Test it
@@ -52,7 +51,7 @@ will print
 ### URL parameters
 
 ``` php
-$router->get("/:id",function($req,$res,$s){
+$router->get("/:id",function($req,$res){
     $res->message("Your id is ".$req->param['id']);
 },['id'=>'digits']);
 ```

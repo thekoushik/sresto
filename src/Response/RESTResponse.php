@@ -1,6 +1,7 @@
 <?php
-namespace SRESTO;
-class RESTResponse extends Response{
+namespace SRESTO\Response;
+use SRESTO\Utils\Util;
+class RESTResponse extends HTTPResponse{
 	/*public function __construct(){
 		parent::__construct();
 	}*/
@@ -19,7 +20,7 @@ class RESTResponse extends Response{
 	}
 	public function updated($msg=NULL){
 		if($msg==NULL) $this->status=204;
-		else if($this->isObject($msg)){
+		else if(Util::isObject($msg)){
 			$this->status=200;
 			$this->json($msg);
 		}else{
