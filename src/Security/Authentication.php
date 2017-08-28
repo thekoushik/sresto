@@ -28,7 +28,7 @@ class Authentication{
         $this->headers=$headers;
     }
     public function validate($req,$res){
-        $t=explode(" ",trim($this->headers['Authorization']),2);
+        $t=explode(" ",trim($this->headers['AUTHORIZATION']),2);
         $token_type=$t[0];
         $this->request['token_type']=$token_type;
         if($token_type=="Basic"){

@@ -41,8 +41,9 @@ class MainRouter extends BaseRouter{
 		return $router;
 	}
 	/* end of static section */
-	public function &createBranch($baseurl='/'){
+	public function &createBranch($baseurl=''){
 		if($baseurl=='') $baseurl='/';
+		if($baseurl[0]!='/') $baseurl='/'.$baseurl;
 		if(isset($this->branches[$baseurl]))
 			throw new \Exception("Route already registered at $baseurl");
 		$this->branches[$baseurl]=[

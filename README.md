@@ -37,15 +37,35 @@ $router->get("/hello",function($req,$res){
 Application::execute();
 ```
 
-Test it
+##### With URL rewrite (.htaccess)
+
+``` apacheconf
+<IfModule mod_rewrite.c>
+    # Tell PHP that the mod_rewrite module is ENABLED.
+    SetEnv HTTP_MOD_REWRITE On
+
+    RewriteEngine on
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule . index.php [L]
+</IfModule>
+```
+
+Test it (in **helloworld** directory)
 
 ``` bash
-$ curl -GET "http://localhost/helloworld/?/hello"
+$ curl -GET "http://localhost/helloworld/hello"
 ```
 will print
 
 ```
 {"message":"Hello World"}
+```
+
+##### Without URL rewrite
+
+``` bash
+$ curl -GET "http://localhost/helloworld/?/hello"
 ```
 
 ### URL parameters

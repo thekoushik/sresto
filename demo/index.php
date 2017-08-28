@@ -4,19 +4,19 @@ require __DIR__ . '/../vendor/autoload.php';
 use SRESTO\Application;
 
 $router=Application::createRouter();
-$router->get("/hello",function($req,$res,$s){
+$router->get("hello",function($req,$res){
     $res->message("Hello World");
 });
-$sub=Application::createRouter("/class");
-$sub->get("/:id",function($req,$res,$s){
+$sub=Application::createRouter("class");
+$sub->get(":id",function($req,$res){
     $res->message("class id is ".$req->param['id']);
 },['id'=>'digits']);
 
-$sub2=$sub->createBranch("/school");
-$sub2->with('auth')->get("/:name",function($req,$res){
+$sub2=$sub->createBranch("school");
+$sub2->with('auth')->get(":name",function($req,$res){
     $res->message("school name is ".$req->param['name']);
 },['name'=>'alphabets']);
-$sub2->get("/:id",function($req,$res){
+$sub2->get(":id",function($req,$res){
     $res->message("school id is ".$req->param['id']);
 },['id'=>'digits']);
 

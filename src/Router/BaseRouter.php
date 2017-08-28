@@ -15,15 +15,23 @@ class BaseRouter{
 	protected $middlewares=[];
 	public function __construct($baseurl=''){
 		$this->router=[
-			'GET'=>[],
+			'GET'=>[
+				'\/'=>[
+					'fn'=>function($req,$res){
+						$res->message('SRESTO');
+					},
+					'params'=>[],
+					'middlewares'=>[]
+				]
+			],
 			'POST'=>[],
 			'PUT'=>[],
 			'DELETE'=>[],
 			'PATCH'=>[],
 			'HEAD'=>[],
 			'error'=>[
-				'404'=>function($req,$res){$res->status(404)->send("Sorry! Page not found!");},
-				'500'=>function($req,$res){$res->status(500)->send("Sorry! Internal server error!");}
+				'404'=>function($req,$res){$res->status(404)->message("Sorry! Page not found!");},
+				'500'=>function($req,$res){$res->status(500)->message("Sorry! Internal server error!");}
 			]
 		];
 		$this->baseURL=$baseurl;
@@ -75,6 +83,7 @@ class BaseRouter{
 	}
 	protected function registerMethod($method,$pattern,$cb,$params){
 		if($params==NULL) $params=[];
+		if($pattern[0]!='/') $pattern='/'.$pattern;
 		$pat=$this->createPattern($this->baseURL.$pattern,$params);
 		$this->router[$method][$pat]=[
 			'fn'=>$cb,

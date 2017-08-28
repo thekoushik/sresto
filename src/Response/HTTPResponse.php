@@ -3,12 +3,12 @@ namespace SRESTO\Response;
 class HTTPResponse{
     protected $status=200;
     protected $response='';
-    protected $headers=array(
-        'Content-type'=>'text/plain',
+    protected $headers=[
+        'Content-type'=>'application/json',
         'X-Powered-By'=>'SRESTO'
-        );
+    ];
     protected $flushed=FALSE;
-    public static $statusTexts = array(
+    public static $statusTexts = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         200 => 'OK',
@@ -50,12 +50,15 @@ class HTTPResponse{
         503 => 'Service Unavailable',
         504 => 'Gateway Timeout',
         505 => 'HTTP Version Not Supported',
-    );
+    ];
     //public function __construct(){}
     public function status($st){
         $this->status=$st;
         return $this;
     }
+    /* @TODO:
+        Check accept header from request and set content(convert if needed) with content-type response header
+    */
     public function send($text){
         $this->response=$text;
         return $this;
@@ -66,16 +69,17 @@ class HTTPResponse{
         return $this;
     }*/
     public function json($obj){
-        $this->headers['Content-type']='application/json';
         $this->response=json_encode($obj);
-        return $this;
+        return $this->header('Content-type','application/json');
     }
     public function location($str){
-        $this->headers['Location']=$str;
-        return $this;
+        return $this->header('Location',$str);
     }
     public function header($key,$val){
-        $this->headers[$key]=$val;
+        if(is_array($key))
+            $this->headers=array_merge($this->headers,$key);
+        else
+            $this->headers[$key]=$val;
         return $this;
     }
     public function flush(){
@@ -88,7 +92,6 @@ class HTTPResponse{
         $this->flushed=TRUE;
     }
     public function message($msg){
-        $this->json(array('message'=>$msg));
-        return $this;
+        return $this->json(array('message'=>$msg));
     }
 }

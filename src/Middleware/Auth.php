@@ -8,7 +8,7 @@ class Auth implements Middleware{
     public function run($req,$res){
         $auth=new Authentication();
         $auth->setHeader($req->headers);
-        if(isset($req->headers['Authorization'])){
+        if(isset($req->headers['AUTHORIZATION'])){
             if(!$auth->validate($req,$res))
                 return false;
             
