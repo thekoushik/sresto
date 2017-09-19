@@ -28,20 +28,33 @@ $ composer install
 ``` php
 require __DIR__ . '/vendor/autoload.php';
 
-use SRESTO\Router;
+use SRESTO\Application;
 
-$router=new Router();
-
-$router->get("/hello",function($req,$res,$s){
+$router=Application::createRouter();
+$router->get("/hello",function($req,$res){
     $res->message("Hello World");
 });
-$router->execute();
+Application::execute();
 ```
 
-Test it
+##### With URL rewrite (.htaccess)
+
+``` apacheconf
+<IfModule mod_rewrite.c>
+    # Tell PHP that the mod_rewrite module is ENABLED.
+    SetEnv HTTP_MOD_REWRITE On
+
+    RewriteEngine on
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule . index.php [L]
+</IfModule>
+```
+
+Test it (in **helloworld** directory)
 
 ``` bash
-$ curl -GET "http://localhost/helloworld/?/hello"
+$ curl -GET "http://localhost/helloworld/hello"
 ```
 will print
 
@@ -49,10 +62,16 @@ will print
 {"message":"Hello World"}
 ```
 
+##### Without URL rewrite
+
+``` bash
+$ curl -GET "http://localhost/helloworld/?/hello"
+```
+
 ### URL parameters
 
 ``` php
-$router->get("/:id",function($req,$res,$s){
+$router->get("/:id",function($req,$res){
     $res->message("Your id is ".$req->param['id']);
 },['id'=>'digits']);
 ```
