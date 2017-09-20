@@ -10,7 +10,20 @@ class Serializer {
 
     //Serialization Block
     public static function serialize($obj,$track=[],$trackClass=[]){
-        if($obj instanceof \Traversable | is_array($obj)){
+        if($obj instanceof \Traversable){
+            $arr=[];
+            $once=true;
+            foreach($obj as $o){
+                if(!is_scalar($o))
+                    if($once){
+                        $once=false;
+                        if(in_array((new \ReflectionClass($o))->getShortName(),$trackClass))
+                            return null;
+                    }
+                $arr[]=self::serialize($o,$track,$trackClass);
+            }
+            return $arr;
+        }else if(is_array($obj)){
             $arr=[];
             $keys=array_keys($obj);
             if(array_keys($keys)!==$keys){//associative
