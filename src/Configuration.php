@@ -20,13 +20,14 @@ final class Configuration{
         return self::$configs[$name];
     }
     public static function has($name,$attr=null){
+        if($name==null)
+            return false;
         if($attr==null)
             return (bool)isset(self::$configs[$name]);
         else
             return (bool)isset(self::$configs[$name][$attr]);
     }
     public static function load($path){
-        //foreach file
         $path=rtrim($path,"/");
         $files=CoreUtil::scanDirectories($path);
         foreach($files as $file){
