@@ -1,6 +1,8 @@
 <?php
 namespace SRESTO\Router;
 use SRESTO\Application;
+use SRESTO\Tools\Logger;
+
 class MainRouter extends BaseRouter{
 	private $throw_on_unknown_request=FALSE;
 	private $branches=[];
@@ -100,6 +102,7 @@ class MainRouter extends BaseRouter{
 					$res->setContent($cb);
 			}
 		}catch(\Exception $e){
+			Logger::error($e->getTraceAsString());
 			$cb=$this->router['error']['500'];
 			if(is_callable($cb))
 				call_user_func($cb,$req,$res,$e->getMessage());//$cb($req,$res,$this->services);

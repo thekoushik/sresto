@@ -102,7 +102,7 @@ class HTTPRequest implements RequestInterface{
         $uri = parse_url('http://sresto.com' . $env['REQUEST_URI'], PHP_URL_PATH);
         $base = '/';
         $path = $uri;
-        if (stripos($uri, $requestScriptName) === 0)
+        if (stripos($uri, $scriptName) === 0)
             $base = $scriptName;
         elseif ($scriptDir !== '/' && stripos($uri, $scriptDir) === 0)
             $base = $scriptDir;
