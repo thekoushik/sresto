@@ -2,7 +2,10 @@
 namespace SRESTO\Router;
 
 use SRESTO\Application;
-use SRESTO\Exception\ParameterException;
+use SRESTO\Exceptions\SRESTOException;
+use SRESTO\Utils\CoreUtil;
+use SRESTO\DTO\Normalizer;
+use SRESTO\Configuration;
 
 class BaseRouter{
 	protected $router;
@@ -12,7 +15,7 @@ class BaseRouter{
 		'alphabets'=>"[a-zA-Z]+",
 		'alphanumerics'=>"[a-zA-Z0-9]+"
 	];
-	const SUPPORTED_METHODS=['GET','POST','PUT','DELETE','PATCH','HEAD'];
+	const SUPPORTED_METHODS=['GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS'];
 	//protected $middlewares=[];
 	protected $beforeProcessors=[];
 	public function __construct($baseurl=''){
@@ -23,6 +26,7 @@ class BaseRouter{
 			'DELETE'=>[],
 			'PATCH'=>[],
 			'HEAD'=>[],
+			'OPTIONS'=>[],
 			'error'=>[
 				'404'=>function($req,$res,$e){$res->setStatus(404)->message("Sorry! Page not found!");},
 				'500'=>function($req,$res,$e){
@@ -47,11 +51,11 @@ class BaseRouter{
 				$name=substr($pat_arr[$i],1);
 				//[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*
 				if(isset($used_params[$name]))
-					throw new ParameterException("Parameter '$name' already been used once.");
+					throw SRESTOException::sameParameterException("Parameter '$name' already been used once.");
 				$used_params[$name]=TRUE;
 				if(isset($param[$name])){
 					if(!isset($this->named_regex[$param[$name]]))
-						throw new ParameterException("Unrecognized parameter type '".$param[$name]."'. Make sure to register it before use.");
+						throw SRESTOException::unrecognizedParameterException("Unrecognized parameter type '".$param[$name]."'. Make sure to register it before use.");
 				}else{//default digits
 					$param[$name]='alphanumerics';
 				}
@@ -73,6 +77,12 @@ class BaseRouter{
 			}
 		}
 		return $newparam;
+	}
+	protected function parseBody($bodyType,$body){
+		if(!empty($bodyType) && !empty($body)){
+			return Normalizer::denormalize($body,$bodyType);
+		}
+		return $body;
 	}
 	public function registerURLRegex($name,$regex){
 		if(strlen($name)<1)
@@ -118,6 +128,19 @@ class BaseRouter{
 			$params=$array['param'];
 			unset($array['param']);
 		}
+		$body=null;
+		if(array_key_exists('body',$array)){
+			$body=$array['body'];
+			unset($array['body']);
+			if(!class_exists($body,false)){
+				$temp=explode("\\",$body);
+				$temp=Configuration::get("resource_package")."\\".end($temp);//broken into two statements because it throws warning if put into single statement
+				if(class_exists($temp))
+					$body=$temp;
+				else
+					throw SRESTOException::classNotFoundException($body);
+			}
+		}
 		if($pattern[0]!='/') $pattern='/'.$pattern;
 		$pat=$this->createPattern($pattern,$params);
 		foreach($array as $key=>$val){
@@ -144,7 +167,7 @@ class BaseRouter{
 					throw new \Exception("Syntax error: BEFORE must be an array.");
 				if(isset($this->beforeProcessors[$pat]))
 					throw new \Exception("Processor $val already used in $pattern.");
-				$this->beforeProcessors[$pat]=['params'=>$params,'before'=>$this->parseProcess($val)];
+				$this->beforeProcessors[$pat]=['params'=>$params,'before'=>$this->parseProcess($val),'body'=>$body];
 			}else if(isset($this->router[$key][$pat])){
 				if(is_array($val)){
 					foreach($val as $vv){
@@ -158,7 +181,7 @@ class BaseRouter{
 				else
 					$this->router[$key][$pat]['proc'][]=$val;
 			}else{
-				$this->router[$key][$pat]=['proc'=>$this->parseProcess($val),'params'=>$params,'before'=>[]];
+				$this->router[$key][$pat]=['proc'=>$this->parseProcess($val),'params'=>$params,'before'=>[],'body'=>$body];
 			}
 		}
 	}

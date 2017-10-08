@@ -15,6 +15,7 @@ class HTTPRequest implements RequestInterface{
     protected $accept;
     protected $headers=[];
     protected $env;
+    protected $data=[];
 
     protected static $header_keys=[
         'SERVER_NAME',
@@ -44,22 +45,6 @@ class HTTPRequest implements RequestInterface{
             $content=file_get_contents('php://input', false , null, -1 , $this->contentLength );
         
         $this->body=ContentNegotiator::processRequest($this->contentType,$content);
-        /*switch($this->contentType){
-            case "application/json":
-                $this->body = json_decode(file_get_contents('php://input'), true);
-                break;
-            case "application/xml":
-                file_get_contents('php://input')
-                break;
-            case "application/x-www-form-urlencoded":
-                if($this->contentLength<0)
-                    parse_str(file_get_contents('php://input'), $this->body);
-                else
-                    parse_str(file_get_contents('php://input', false , null, -1 , $this->contentLength ), $this->body);
-                break;
-            default:
-                $this->body=file_get_contents("php://input");
-        }*/
     }
     
     private function fetchHeaders($env){
@@ -152,12 +137,8 @@ class HTTPRequest implements RequestInterface{
     }
 
     public function getMethod(){return $this->method;}
-    public function getBody($name=null){
-        if($name==null)
-            return $this->body;
-        else
-            return $this->body[$name];
-    }
+    public function getBody(){return $this->body;}
+    public function setBody($body){$this->body=$body;}
     public function getQuery($name){return $this->query[$name];}
     public function getFragment(){return $this->fragment;}
     public function getPath(){return $this->path;}
@@ -167,4 +148,9 @@ class HTTPRequest implements RequestInterface{
     public function setParam($array){return $this->param=$array;}
     public function getAccept(){return $this->accept;}
     public function getHeader($name){return $this->headers[$name];}
+    public function hasHeader($name){return (bool)isset($this->headers[$name]);}
+    public function getData($key=null){return ($key!=null)?$this->data[$key]:$this->data;}
+    public function setData($key,$data=null){
+        if($key!=null) $this->data[$key]=$data;
+    }
 }

@@ -41,7 +41,7 @@ class Authentication{
         }else if($token_type=="Bearer")
             $this->request['token']=$t[1];
         else
-            $res->sendError(400,"unsupported_token","Unsupported token type '".$token_type."'.");;//throw new \Exception();
+            $res->sendError(400,"unsupported_token","Unsupported token type '".$token_type."'.");//throw new \Exception();
         return true;//return false to stop route forwarding
     }
 }

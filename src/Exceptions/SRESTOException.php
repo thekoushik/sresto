@@ -7,4 +7,7 @@ class SRESTOException extends \Exception{
     public static function unrecognizedParameterException($name){
         return new self("Unrecognized parameter type '$name'. Make sure to register it before use.");
     }
+    public static function classNotFoundException($name){
+        return new self("Class '$name' does not exist.");
+    }
 }

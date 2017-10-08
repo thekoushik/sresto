@@ -7,6 +7,10 @@ class CoreUtil{
     public static function isObject($obj){
         return is_array($val)?TRUE:(is_scalar($val)?FALSE:TRUE);
     }
+    public static function isAssociativeArray($array){
+        $keys=array_keys($array);
+        return array_keys($keys)!==$keys;
+    }
     public static function scanClasses($root,$path){
         $root=rtrim($root,"/");
         if($path[0]!='/') $path='/'.$path;
@@ -42,4 +46,18 @@ class CoreUtil{
     public static function parseYML($file){
         return Yaml::parse(file_get_contents($file));
     }
+    /*public static function parsePrint_r($obj){
+        $array=[];
+        if(is_scalar($obj)){
+            $array=['type'=>'scalar','data'=>$obj];
+        }else{
+            $str=print_r($obj,true);
+            if(substr($str,0,5)==="Array"){
+
+            }else{
+
+            }
+        }
+        return $array;
+    }*/
 }

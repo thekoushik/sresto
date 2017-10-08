@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class GeneratorCommand extends Command{
     protected function configure(){
-        $this->setName("make:cool")
+        $this->setName("cool")
                 ->setDescription("Shows all features that cli can do");
     }
 

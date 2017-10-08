@@ -74,6 +74,7 @@ class MainRouter extends BaseRouter{
 				$result=$this->matchURL($url,$pattern);
 				if($result!=NULL){
 					$req->setParam($this->createParamFromMatch($result,$cb['params']));
+					$req->setBody($this->parseBody($cb['body'],$req->getBody()));
 					$stopNow=false;
 					foreach($cb['before'] as $procs){
 						$o=Application::$processors[$procs['class']];
