@@ -6,8 +6,17 @@ use SRESTO\Exceptions\SRESTOException;
 use SRESTO\Utils\CoreUtil;
 use SRESTO\DTO\Normalizer;
 use SRESTO\Configuration;
+use SRESTO\Common\MetaData;
+use SRESTO\Common\Annotations\RequestMapping;
+use SRESTO\Common\Annotations\RequestBody;
 
 class BaseRouter{
+	/**
+	 * Names for named routes
+	 *
+	 * @var array
+	 * @todo make it simple
+	 */
 	protected $names=[];
 	protected $router;
 	protected $baseURL='';
@@ -18,6 +27,9 @@ class BaseRouter{
 	];
 	const SUPPORTED_METHODS=['GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS'];
 	protected $beforeProcessors=[];
+
+	private static $instance=null;
+
 	public function __construct($baseurl=''){
 		$this->router=[
 			'GET'=>[],
@@ -53,24 +65,6 @@ class BaseRouter{
 		}
 		$newparam=str_replace('/', '\/', implode("/",$newparam));
 		return $newparam;
-	}
-	protected function createParamFromMatch($matches,$param){
-		$newparam=[];
-		if($param==NULL) return $newparam;
-		foreach($param as $key => $value){
-			if(isset($matches[$key])){
-				$newparam[$key]=$matches[$key][0];
-			}else{
-				$newparam[$key]=NULL;
-			}
-		}
-		return $newparam;
-	}
-	protected function parseBody($bodyType,$body){
-		if(!empty($bodyType) && !empty($body)){
-			return Normalizer::denormalize($body,$bodyType);
-		}
-		return $body;
 	}
 	public function registerURLRegex($name,$regex){
 		if(strlen($name)<1)
@@ -152,6 +146,7 @@ class BaseRouter{
 				$this->router[$key][$pat]=['proc'=>$this->parseProcess($val),'params'=>$params,'before'=>[],'body'=>$body];
 			}
 		}
+		
 	}
 	protected function parseProcess($name){
 		if(is_array($name)){
@@ -195,11 +190,65 @@ class BaseRouter{
 				foreach($this->router[$m] as $pat2=>$val2)
 					if(strpos($pat2,$pat)===0)
 						$this->router[$m][$pat2]['before']+=$val['before'];
+		return $this->router;
 	}
 	public function createCacheFromRoutes(){
 		return base64_encode(serialize($this->router));
 	}
 	public function createRoutesFromCache($cache){
-		$this->router=unserialize(base64_decode($cache));
+		return $this->router=unserialize(base64_decode($cache));
+	}
+	public static function root(){
+		if(self::$instance==null)
+			self::$instance=new self();
+		return self::$instance;
+	}
+	public static function create($baseurl=''){
+		self::$instance=new self($baseurl);
+		return self::$instance;
+	}
+	public static function createFromArray($array){
+		self::root();
+		foreach($array as $path=>$item){
+			if(is_array($item)){
+				if(count($item)==0)
+					throw new \Exception("Syntax Error");
+				self::$instance->registerMethodFromArray($path,$item);
+			}else
+				throw new \Exception("Syntax Error");
+		}
+		return self::$instance;
+	}
+	public static function createFromAnnotaion($classes){
+		self::root();
+		foreach($classes as $clazz){
+			$meta=new MetaData($clazz);
+			if($meta->reflection->isAbstract() || $meta->reflection->isInterface())
+				continue;
+			$reqMap=$meta->getClassAnnotation(RequestMapping::class);
+			if($reqMap==null)
+				continue;
+			$path=($reqMap->path=="")?"/":$reqMap->path;
+			$methods=$meta->reflection->getMethods();
+			foreach($methods as $method){
+				$reqMapMethod=$meta->getMethodAnnotation($method->name,RequestMapping::class);
+				if($reqMapMethod){
+					$reqMethod=$reqMap->method;
+					if(empty($reqMapMethod->method)){
+						if(empty($reqMethod))
+							throw SRESTOException::methodNotDefinedException($path);
+					}else if(!empty($reqMap->method))
+						throw SRESTOException::methodReDefineException($reqMap->method);
+					else
+						$reqMethod=$reqMapMethod->method;
+					$uri=CoreUtil::concatURLs([$path,$reqMapMethod->path]);
+					$route=[$reqMethod=>$clazz."@".$method->name];
+					$body=$meta->getMethodAnnotation($method->name,RequestBody::class);
+					if($body)
+						$route['body']=$body->className;
+					self::$instance->registerMethodFromArray($uri,$route);
+				}
+			}
+		}
 	}
 }

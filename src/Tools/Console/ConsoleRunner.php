@@ -5,6 +5,7 @@ use SRESTO\Tools\Console\Commands\GeneratorCommand;
 use SRESTO\Tools\Console\Commands\ResourceCommand;
 use SRESTO\Tools\Console\Commands\ProcessorCommand;
 use SRESTO\Tools\Console\Commands\REPLCommand;
+use SRESTO\Tools\Console\Commands\RouteCacheCommand;
 
 class ConsoleRunner{
     public static function createApplication(){
@@ -13,6 +14,7 @@ class ConsoleRunner{
         $app->add(new ResourceCommand());
         $app->add(new ProcessorCommand());
         $app->add(new REPLCommand());
+        $app->add(new RouteCacheCommand());
         return $app;
     }
 }

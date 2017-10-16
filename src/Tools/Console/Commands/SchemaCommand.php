@@ -18,13 +18,25 @@ class SchemaCommand extends Command{
     }
     protected function configure(){
         $this->setName("make:schema")
-             ->setDescription("Generates schema from metadata.");
+             ->setDescription("Generates schema from metadata.")
+             ->addOption(
+                'update',
+                'u',
+                InputOption::VALUE_NONE,
+                'Updates schema from metadata.'
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output){
+        $update=$input->getOption('update');
         $schemaTool = new SchemaTool($this->entityManager);
         $classes = $this->entityManager->getMetadataFactory()->getAllMetadata();
-        $schemaTool->createSchema($classes);
-        $output->writeln("Schema Generated");
+        if($update){
+            $schemaTool->updateSchema($classes);
+            $output->writeln("Schema Updated.");
+        }else{
+            $schemaTool->createSchema($classes);
+            $output->writeln("Schema Generated.");
+        }
     }
 }
