@@ -10,7 +10,6 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use SRESTO\Configuration;
-use SRESTO\Utils\Helper;
 use SRESTO\Utils\CoreUtil;
 
 class ProcessorCommand extends Command{
@@ -28,7 +27,7 @@ class ProcessorCommand extends Command{
             $io->error("File '$filename' already exists.");
             return 0;
         }
-        $path=Helper::strToSnakeCase($clazz);
+        $path=strToSnakeCase($clazz);
         $template=<<<'EOT'
 <?php
 namespace API\Processors;

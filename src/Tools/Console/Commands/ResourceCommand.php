@@ -14,7 +14,6 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use SRESTO\Configuration;
-use SRESTO\Utils\Helper;
 use SRESTO\Utils\CoreUtil;
 use Symfony\Component\Console\Input\ArrayInput;
 
@@ -52,7 +51,7 @@ class ResourceCommand extends Command{
             return 0;
         }
 
-        $tableName=Helper::strToSnakeCase($clazz);
+        $tableName=strToSnakeCase($clazz);
         if(substr($tableName,-1,1)!=="s") $tableName.="s";
         $templatevars=['tableName'=>$tableName,'clazz'=>$clazz];
         $template=<<<'EOT'
@@ -103,8 +102,8 @@ EOT;
                     break;
             }
             $body.="\n    /** @Column($type) */\n    protected $".$prop.";";
-            $body2.="\n    public function get".Helper::strToPascalCase($prop).'(){return $this->'.$prop.';}';
-            $body2.="\n    public function set".Helper::strToPascalCase($prop).'($arg){$this->'.$prop.'=$arg;}';
+            $body2.="\n    public function get".strToPascalCase($prop).'(){return $this->'.$prop.';}';
+            $body2.="\n    public function set".strToPascalCase($prop).'($arg){$this->'.$prop.'=$arg;}';
             /*$question = new ConfirmationQuestion('Continue with this action?[y/n] (defaults to no) ', false);
             if ($helper->ask($input, $output, $question)) {
                 $output->writeln('Accepted');
