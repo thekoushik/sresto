@@ -15,6 +15,8 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use SRESTO\Configuration;
 use SRESTO\Utils\Helper;
+use SRESTO\Utils\CoreUtil;
+use Symfony\Component\Console\Input\ArrayInput;
 
 class ResourceCommand extends Command{
     /*private $entityManager;
@@ -24,7 +26,14 @@ class ResourceCommand extends Command{
     }*/
     protected function configure(){
         $this->setName("make:resource")
-             ->setDescription("Generates resource by asking questions.");
+             ->setDescription("Generates resource by asking questions.")
+             ->addOption(
+                'proc',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Generates a processor',
+                true
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output){
@@ -34,17 +43,40 @@ class ResourceCommand extends Command{
         $clazz = trim($helper->ask($input, $output, $question));
         if(empty($clazz)){
             $io->error("Class name is required");
-            return;
+            return 0;
+        }
+
+        $filename=Configuration::get("resource_package_path").DIRECTORY_SEPARATOR.$clazz.".php";
+        if(file_exists($filename)){
+            $io->error("File '$filename' already exists.");
+            return 0;
         }
 
         $tableName=Helper::strToSnakeCase($clazz);
         if(substr($tableName,-1,1)!=="s") $tableName.="s";
-        
-        $body=[];
-        $body[]="    /**\n     * @Id\n     * @Column(type=\"integer\")\n     * @GeneratedValue\n     */\n    protected ".'$id'.";";
-        $body2=[];
-        $body2[]='    public function getId(){return $this->id;}';
-        $body2[]='    public function setId($id){$this->id=$id;}';
+        $templatevars=['tableName'=>$tableName,'clazz'=>$clazz];
+        $template=<<<'EOT'
+<?php
+namespace API\Resources;
+use SRESTO\Storage\Resource;
+/**
+ * @Entity
+ * @Table(name="{tableName}")
+ */
+class {clazz} extends Resource{
+EOT;
+        $body=<<<'EOT'
+    /**
+     * @Id
+     * @Column(type="integer")
+     * @GeneratedValue
+     */
+    protected $id;
+EOT;
+        $body2=<<<'EOT'
+    public function getId(){return $this->id;}
+    public function setId($id){$this->id=$id;}
+EOT;
         while(1){
             $question = new Question('Please enter property name: ');
             $prop = trim($helper->ask($input, $output, $question));
@@ -70,17 +102,28 @@ class ResourceCommand extends Command{
                 $type='type="'.$type.'"';
                     break;
             }
-            $body[]="    /** @Column($type) */\n    protected $".$prop.";";
-            $body2[]='    public function get'.Helper::strToPascalCase($prop).'(){return $this->'.$prop.';}';
-            $body2[]='    public function set'.Helper::strToPascalCase($prop).'($arg){$this->'.$prop.'=$arg;}';
+            $body.="\n    /** @Column($type) */\n    protected $".$prop.";";
+            $body2.="\n    public function get".Helper::strToPascalCase($prop).'(){return $this->'.$prop.';}';
+            $body2.="\n    public function set".Helper::strToPascalCase($prop).'($arg){$this->'.$prop.'=$arg;}';
             /*$question = new ConfirmationQuestion('Continue with this action?[y/n] (defaults to no) ', false);
             if ($helper->ask($input, $output, $question)) {
                 $output->writeln('Accepted');
             }*/
         }
-        file_put_contents(Configuration::get("resource_package_path").DIRECTORY_SEPARATOR.$clazz.".php",
-        "<?php\nnamespace API\Resources;\nuse SRESTO\Storage\Resource;\n/**\n * @Entity\n * @Table(name=\"$tableName\")\n */\nclass $clazz extends Resource{\n".implode("\n",$body)."\n".implode("\n",$body2)."\n}");
+        file_put_contents($filename,CoreUtil::parseTemplateString($template."\n".$body."\n".$body2."\n}\n",$templatevars));
         $output->writeln("Resource ".$clazz." added.");
+
+        $processor=$input->getOption('proc');
+        if($processor){
+            if(!is_string($processor))
+                $processor=$clazz."Processor";
+            
+            $command = $this->getApplication()
+                            ->find('make:processor')
+                            ->run(new ArrayInput([
+                                    'command' => 'make:processor',
+                                    'class'   => $processor]), $output);
+        }
         $io->note("run 'php sresto make:schema' to create table in the database.");
     }
 }

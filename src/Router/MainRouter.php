@@ -2,10 +2,16 @@
 namespace SRESTO\Router;
 use SRESTO\Application;
 use SRESTO\Tools\Logger;
+use SRESTO\Common\MetaData;
+use SRESTO\Common\Annotations\RequestMapping;
+use SRESTO\Common\Annotations\RequestBody;
+use SRESTO\Exceptions\Error400Exception;
+use SRESTO\Exceptions\Error500Exception;
+use SRESTO\Exceptions\SRESTOException;
+use SRESTO\Utils\CoreUtil;
 
 class MainRouter extends BaseRouter{
-	private $throw_on_unknown_request=FALSE;
-	private $branches=[];
+	//private $branches=[];
 	private static $instance=null;
 	public function __construct($baseurl=''){
 		parent::__construct($baseurl);
@@ -65,7 +71,7 @@ class MainRouter extends BaseRouter{
 		//return strpos($url,$pattern)===0;
 	}
 	public function execute($req,$res){
-		$this->processRoutes();
+		//$this->processRoutes();
 		//print_r($this->router);die();
 		$url=$req->getPath();
 		try{
@@ -95,20 +101,53 @@ class MainRouter extends BaseRouter{
 					break;
 				}
 			}
-			if(!$found){
-				$cb=$this->router['error']['404'];
-				if(is_callable($cb))
-					call_user_func($cb,$req,$res,404);//$cb($req,$res,$this->services);
-				else
-					$res->setContent($cb);
-			}
+			if(!$found)
+				throw new Error400Exception(404);
+		}catch(Error400Exception $e){
+			$res->setStatus($e->code)->message($e->message);
+		}catch(Error500Exception $e){
+			$res->setStatus($e->code)->setContent([
+				'message'=>$e->message,
+				'error'=>$e
+			]);
 		}catch(\Exception $e){
 			Logger::error($e->getTraceAsString());
-			$cb=$this->router['error']['500'];
-			if(is_callable($cb))
-				call_user_func($cb,$req,$res,$e->getMessage());//$cb($req,$res,$this->services);
-			else
-				$res->setContent($cb);
+			$res->setStatus(500)->setContent([
+				'message'=>"Sorry! Internal server error!",
+				'error'=>$e
+			]);
+		}
+	}
+	public static function createFromAnnotaion($classes){
+		self::root();
+		foreach($classes as $clazz){
+			$meta=new MetaData($clazz);
+			if($meta->reflection->isAbstract() || $meta->reflection->isInterface())
+				continue;
+			$reqMap=$meta->getClassAnnotation(RequestMapping::class);
+			if($reqMap==null)
+				continue;
+			$path=($reqMap->path=="")?"/":$reqMap->path;
+			$methods=$meta->reflection->getMethods();
+			foreach($methods as $method){
+				$reqMapMethod=$meta->getMethodAnnotation($method->name,RequestMapping::class);
+				if($reqMapMethod){
+					$reqMethod=$reqMap->method;
+					if(empty($reqMapMethod->method)){
+						if(empty($reqMethod))
+							throw SRESTOException::methodNotDefinedException($path);
+					}else if(!empty($reqMap->method))
+						throw SRESTOException::methodReDefineException($reqMap->method);
+					else
+						$reqMethod=$reqMapMethod->method;
+					$uri=CoreUtil::concatURLs([$path,$reqMapMethod->path]);
+					$route=[$reqMethod=>$clazz."@".$method->name];
+					$body=$meta->getMethodAnnotation($method->name,RequestBody::class);
+					if($body)
+						$route['body']=$body->className;
+					self::$instance->registerMethodFromArray($uri,$route);
+				}
+			}
 		}
 	}
 	/*public function execute2($req,$res){

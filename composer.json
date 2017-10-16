@@ -17,6 +17,9 @@
         "phpunit/phpunit": "^4.8"
     },
     "autoload": {
+        "files": [
+            "src/Common/commons.php"
+        ],
         "psr-4": {
             "SRESTO\\": "src/"
         }

@@ -1,7 +1,7 @@
 <?php
 namespace SRESTO\Response;
-use SRESTO\Response\ResponseInterface;
-class HTTPResponse implements ResponseInterface{
+
+class HTTPResponse{
     protected $status=200;
     protected $response='';
     protected $headers=[

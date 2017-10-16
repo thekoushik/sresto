@@ -1,9 +1,9 @@
 <?php
 namespace SRESTO\Request;
-use SRESTO\Request\RequestInterface;
 use SRESTO\MIMEs\ContentNegotiator;
-class HTTPRequest implements RequestInterface{
-    protected $method;
+
+class HTTPRequest{
+    /*protected $method;
     protected $body;
     public $originalURL;
     protected $query;
@@ -13,9 +13,10 @@ class HTTPRequest implements RequestInterface{
     protected $contentLength;
     protected $param;
     protected $accept;
-    protected $headers=[];
-    protected $env;
+    protected $headers=[];*/
+    protected static $env;
     protected $data=[];
+    protected static $requestData=null;
 
     protected static $header_keys=[
         'SERVER_NAME',
@@ -33,52 +34,55 @@ class HTTPRequest implements RequestInterface{
     ];
     
     public function __construct(){
-        $this->env=$_SERVER;
-        if(!isset($_SERVER['HTTP_MOD_REWRITE']))//if (defined('URL_REWRITE_IS_OFF'))//define("URL_REWRITE_IS_OFF", "1");
-            $this->fetchHeadersWhenURLRewriteIsOff($this->env);
+        if(self::$requestData!=null) return;
+        self::$requestData=['data'=>[],'path'=>null];
+        self::$env=$_SERVER;
+        if(!isset(self::$env['HTTP_MOD_REWRITE']))//if (defined('URL_REWRITE_IS_OFF'))//define("URL_REWRITE_IS_OFF", "1");
+            $this->fetchHeadersWhenURLRewriteIsOff(self::$env);
         else
-            $this->fetchHeaders($this->env);
-        $this->param=[];
-        if($this->contentLength<0)
+            $this->fetchHeaders(self::$env);
+        self::$requestData['param']=[];
+        if(self::$requestData['contentLength']<0)
             $content=file_get_contents('php://input');
         else
-            $content=file_get_contents('php://input', false , null, -1 , $this->contentLength );
+            $content=file_get_contents('php://input', false , null, -1 , self::$requestData['contentLength'] );
         
-        $this->body=ContentNegotiator::processRequest($this->contentType,$content);
+        self::$requestData['body']=ContentNegotiator::processRequest(self::$requestData['contentType'],$content);
     }
     
     private function fetchHeaders($env){
-        $this->method=$env['REQUEST_METHOD'];
-        $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        self::$requestData['method']=$env['REQUEST_METHOD'];
+        self::$requestData['originalURL']=(isset($env['HTTPS'])?"https":"http")."://$env[HTTP_HOST]$env[REQUEST_URI]";
+        
         $headers_alt=[];
         if(function_exists("getallheaders"))
             $headers_alt=array_change_key_case(getallheaders(),CASE_UPPER);
         if(isset($env["CONTENT_LENGTH"]))
-            $this->contentLength=intval($env['CONTENT_LENGTH']);
+            self::$requestData['contentLength']=intval($env['CONTENT_LENGTH']);
         else
-            $this->contentLength=isset($headers_alt['CONTENT-LENGTH'])?intval($headers_alt['CONTENT-LENGTH']):0;
+            self::$requestData['contentLength']=isset($headers_alt['CONTENT-LENGTH'])?intval($headers_alt['CONTENT-LENGTH']):0;
         if(isset($env["CONTENT_TYPE"]))
-            $this->contentType=$env['CONTENT_TYPE'];
+            self::$requestData['contentType']=$env['CONTENT_TYPE'];
         else
-            $this->contentType=isset($headers_alt['CONTENT-TYPE'])?$headers_alt['CONTENT-TYPE']:null;
+            self::$requestData['contentType']=isset($headers_alt['CONTENT-TYPE'])?$headers_alt['CONTENT-TYPE']:null;
         if(isset($env["CONTENT_LENGTH"]))
-            $this->contentLength=intval($env['CONTENT_LENGTH']);
+            self::$requestData['contentLength']=intval($env['CONTENT_LENGTH']);
         else
-            $this->contentLength=isset($headers_alt['CONTENT-LENGTH'])?intval($headers_alt['CONTENT-LENGTH']):0;
+            self::$requestData['contentLength']=isset($headers_alt['CONTENT-LENGTH'])?intval($headers_alt['CONTENT-LENGTH']):0;
         if(isset($env["HTTP_ACCEPT"]))
-            $this->accept=$env['HTTP_ACCEPT'];
+            self::$requestData['accept']=$env['HTTP_ACCEPT'];
         else
-            $this->accept=isset($headers_alt['ACCEPT'])?$headers_alt['ACCEPT']:$this->contentType;
+            self::$requestData['accept']=isset($headers_alt['ACCEPT'])?$headers_alt['ACCEPT']:self::$requestData['contentType'];
         
-        $this->headers=$headers_alt;
+        self::$requestData['headers']=$headers_alt;
 
         foreach(self::$header_keys as $h)
             if(isset($env[$h]))
-                $this->headers[$h]=$env[$h];
+                self::$requestData['headers'][$h]=$env[$h];
         
         foreach($env as $key=>$val){
             if(strpos($key,"HTTP_")===0){
-                $this->headers[substr($key,5)]=$val;
+                self::$requestData['headers'][substr($key,5)]=$val;
             }
         }
 
@@ -93,64 +97,64 @@ class HTTPRequest implements RequestInterface{
             $base = $scriptDir;
         if ($base)
             $path = ltrim(substr($uri, strlen($base)), '/');
-        $this->path='/'.$path;
+        self::$requestData['path']='/'.$path;
         $query =isset($env['QUERY_STRING'])? $env['QUERY_STRING']:'';
         if ($query === '')
             $query = parse_url('http://sresto.com' . $env['REQUEST_URI'], PHP_URL_QUERY);
         if($query==null)
-            $this->query=[];
+            self::$requestData['query']=[];
         else
-            parse_str($query,$this->query);
+            parse_str($query,self::$requestData['query']);
         //#fragment
     }
     private function fetchHeadersWhenURLRewriteIsOff($env){
-        $this->method=$env['REQUEST_METHOD'];
+        self::$requestData['method']=$env['REQUEST_METHOD'];
         $url=$env['QUERY_STRING'];
         
         $i=strpos($url,"?");
         if($i===false)
-            $this->query=[];
+            self::$requestData['query']=[];
         else{
-            parse_str(substr($url,$i+1),$this->query);
+            parse_str(substr($url,$i+1),self::$requestData['query']);
             $url=substr($url,0,$i);
         }
-        $this->path=$url;
+        self::$requestData['path']=$url;
         
-        $this->originalURL=(isset($_SERVER['HTTPS'])?"https":"http")."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        self::$requestData['originalURL']=(isset($env['HTTPS'])?"https":"http")."://$env[HTTP_HOST]$env[REQUEST_URI]";
         $headers=apache_request_headers();
-        $this->headers=$headers;
-        if(isset($_SERVER["CONTENT_TYPE"]))
-            $this->contentType=$_SERVER['CONTENT_TYPE'];
+        self::$requestData['headers']=$headers;
+        if(isset($env["CONTENT_TYPE"]))
+            self::$requestData['contentType']=$env['CONTENT_TYPE'];
         else
-            $this->contentType=isset($headers['Content-Type'])?$headers['Content-Type']:'text/plain';
-        if(isset($_SERVER["CONTENT_LENGTH"]))
-            $this->contentLength=intval($_SERVER['CONTENT_LENGTH']);
+            self::$requestData['contentType']=isset($headers['Content-Type'])?$headers['Content-Type']:'text/plain';
+        if(isset($env["CONTENT_LENGTH"]))
+            self::$requestData['contentLength']=intval($env['CONTENT_LENGTH']);
         else 
-            $this->contentLength=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
-        $this->accept=isset($headers['Accept'])?$headers['Accept']:'text/plain';
+            self::$requestData['contentLength']=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
+        self::$requestData['accept']=isset($headers['Accept'])?$headers['Accept']:'text/plain';
     }
     public function isJSON(){
-        return ($this->contentType==="application/json");
+        return (self::$requestData['contentType']==="application/json");
     }
     public function isAJAX(){
-        return (bool) (isset($this->headers['X_REQUESTED_WITH']) & ($this->headers['X_REQUESTED_WITH'] === 'XMLHttpRequest'));
+        return (bool) (isset(self::$requestData['headers']['X_REQUESTED_WITH']) & (self::$requestData['headers']['X_REQUESTED_WITH'] === 'XMLHttpRequest'));
     }
 
-    public function getMethod(){return $this->method;}
-    public function getBody(){return $this->body;}
-    public function setBody($body){$this->body=$body;}
-    public function getQuery($name){return $this->query[$name];}
-    public function getFragment(){return $this->fragment;}
-    public function getPath(){return $this->path;}
-    public function getContentType(){return $this->contentType;}
-    public function getContentLength(){return $this->contentLength;}
-    public function getParam($name){return $this->param[$name];}
-    public function setParam($array){return $this->param=$array;}
-    public function getAccept(){return $this->accept;}
-    public function getHeader($name){return $this->headers[$name];}
-    public function hasHeader($name){return (bool)isset($this->headers[$name]);}
-    public function getData($key=null){return ($key!=null)?$this->data[$key]:$this->data;}
+    public function getMethod(){return self::$requestData['method'];}
+    public function getBody(){return self::$requestData['body'];}
+    public function setBody($body){self::$requestData['body']=$body;}
+    public function getQuery($name){return self::$requestData['query'][$name];}
+    public function getFragment(){return self::$requestData['fragment'];}
+    public function getPath(){return self::$requestData['path'];}
+    public function getContentType(){return self::$requestData['contentType'];}
+    public function getContentLength(){return self::$requestData['contentLength'];}
+    public function getParam($name){return self::$requestData['param'][$name];}
+    public function setParam($array){return self::$requestData['param']=$array;}
+    public function getAccept(){return self::$requestData['accept'];}
+    public function getHeader($name){return self::$requestData['headers'][$name];}
+    public function hasHeader($name){return (bool)isset(self::$requestData['headers'][$name]);}
+    public function getData($key=null){return ($key!=null)?self::$requestData['data'][$key]:self::$requestData['data'];}
     public function setData($key,$data=null){
-        if($key!=null) $this->data[$key]=$data;
+        if($key!=null) self::$requestData['data'][$key]=$data;
     }
 }

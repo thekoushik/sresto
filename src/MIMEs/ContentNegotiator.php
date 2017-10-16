@@ -1,7 +1,5 @@
 <?php
 namespace SRESTO\MIMEs;
-use SRESTO\Request\RequestInterface;
-use SRESTO\Response\ResponseInterface;
 use SRESTO\MIMEs\MIMEType as ContentType;
 use SRESTO\DTO\Normalizer;
 use SRESTO\Common\Event;
@@ -13,7 +11,7 @@ class ContentNegotiator{
         $body=$type->parseFrom($content);
         return $body;
     }
-    public static function processResponse(RequestInterface $req,ResponseInterface $res){//serialize
+    public static function processResponse($req,$res){//serialize
         Event::dispatch(self::PreProcessResponse,$res);
         $type=new ContentType($req->getAccept());
         $res->setHeader("Content-Type",ContentType::TYPES[$type->getType()]);

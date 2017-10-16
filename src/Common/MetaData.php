@@ -1,7 +1,5 @@
 <?php
 namespace SRESTO\Common;
-//use SRESTO\Configuration;
-use SRESTO\Utils\Helper;
 
 class MetaData{
     const METHOD='methods';
@@ -13,11 +11,7 @@ class MetaData{
     public $reflection;
 
     public function __construct($clazz){
-        //try{
-            $this->reflection=new \ReflectionClass($clazz);
-        //}catch(\ReflectionException $ex){
-        //    $this->reflection=new \ReflectionClass(Configuration::get("resource_package")."\\".$clazz);
-        //}
+        $this->reflection=new \ReflectionClass($clazz);
         $clazz=$this->reflection->name;
         if(isset(self::$cache[$clazz]))
             $this->data=self::$cache[$clazz];
@@ -75,13 +69,13 @@ class MetaData{
         return false;
     }
     public function getPublicGetter($propertyName){
-        return $this->getPublicMethod("get".Helper::strToPascalCase($propertyName));
+        return $this->getPublicMethod("get".strToPascalCase($propertyName));
     }
     public function getPublicIsser($propertyName){
-        return $this->getPublicMethod("is".Helper::strToPascalCase($propertyName));
+        return $this->getPublicMethod("is".strToPascalCase($propertyName));
     }
     public function getPublicSetter($propertyName){
-        return $this->getPublicMethod("set".Helper::strToPascalCase($propertyName));
+        return $this->getPublicMethod("set".HstrToPascalCase($propertyName));
     }
     public function getPublicMethod($name){
         $methods=$this->reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
@@ -89,28 +83,6 @@ class MetaData{
             if($method->name==$name)
                 return $method;
         return null;
-    }
-    ///////////////////////////////////////////////////////////
-    public function getPublicMethods(){
-        return $this->getMembersWithModifiers("public");
-    }
-    public function getPublicProperties(){
-        return $this->getMembersWithModifiers("public",self::PROPERTY);
-    }
-    public function hasGetter($propertyName){
-        return $this->hasMethod("get".Helper::strToPascalCase($propertyName));
-    }
-    public function hasIsser($propertyName){
-        return $this->hasMethod("is".Helper::strToPascalCase($propertyName));
-    }
-    public function hasSetter($propertyName){
-        return $this->hasMethod("set".Helper::strToPascalCase($propertyName));
-    }
-    public function hasMethod($name){
-        return isset($this->data[self::METHOD][$name]);
-    }
-    public function isMethodPublic($method){
-        return (bool)in_array("public",$this->data[self::METHOD][$name]['modifiers']);
     }
     public function getPropertyAnnotation($propertyName,$annotation=null){
         if($annotation==null)
@@ -131,6 +103,38 @@ class MetaData{
                     return $anno;
             return null;
         }
+    }
+    public function getClassAnnotation($annotation=null){
+        if($annotation==null)
+            return $this->data['class']['annotations'];
+        else{
+            foreach($this->data['class']['annotations'] as $anno)
+                if(get_class($anno)===$annotation)
+                    return $anno;
+            return null;
+        }
+    }
+    ///////////////////////////////////////////////////////////
+    public function getPublicMethods(){
+        return $this->getMembersWithModifiers("public");
+    }
+    public function getPublicProperties(){
+        return $this->getMembersWithModifiers("public",self::PROPERTY);
+    }
+    public function hasGetter($propertyName){
+        return $this->hasMethod("get".strToPascalCase($propertyName));
+    }
+    public function hasIsser($propertyName){
+        return $this->hasMethod("is".strToPascalCase($propertyName));
+    }
+    public function hasSetter($propertyName){
+        return $this->hasMethod("set".strToPascalCase($propertyName));
+    }
+    public function hasMethod($name){
+        return isset($this->data[self::METHOD][$name]);
+    }
+    public function isMethodPublic($method){
+        return (bool)in_array("public",$this->data[self::METHOD][$name]['modifiers']);
     }
     /*public function getAnnotation($memberName,$type=self::PROPERTY,$annotation=null){
         if($annotation==null)
@@ -159,15 +163,15 @@ class MetaData{
         return $members;
     }
     public function getGetter($propertyName){
-        $method="get".Helper::strToPascalCase($propertyName);
+        $method="get".strToPascalCase($propertyName);
         return $this->hasMethod($method)?$method:null;
     }
     public function getIsser($propertyName){
-        $method="is".Helper::strToPascalCase($propertyName);
+        $method="is".strToPascalCase($propertyName);
         return $this->hasMethod($method)?$method:null;
     }
     public function getSetter($propertyName){
-        $method="set".Helper::strToPascalCase($propertyName);
+        $method="set".strToPascalCase($propertyName);
         return $this->hasMethod($method)?$method:null;
     }
     public function getGetters(){

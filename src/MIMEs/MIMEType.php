@@ -1,7 +1,6 @@
 <?php
 namespace SRESTO\MIMEs;
-class MIMEType
-{
+class MIMEType{
     const TEXT=0;
     const JSON = 1;
     const XML = 2;

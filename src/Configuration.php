@@ -3,14 +3,33 @@ namespace SRESTO;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
 use SRESTO\Utils\CoreUtil;
+use SRESTO\Exceptions\SRESTOException;
 
 final class Configuration{
-    private static $configs=[];
-    public static function set($name,$array){
-        if(!isset(self::$configs[$name])){
-            self::$configs[$name]=$array;
+    private static $configs=["resource_package"=>"API\\Resources",
+                             "processor_package"=>"API\\Processors"];
+    /*private static $dtoMetaData=[];
+    public static function setDTOMetaData($array){
+        if(count(self::$dtoMetaData)==0)
+            self::$dtoMetaData=$array;
+        else
+            throw SRESTOException::cannotReAssignDTOMetaDataException();
+    }
+    public static function getDTOMetaData($clazz){
+        return self::$dtoMetaData[$clazz];
+    }*/
+    public static function set($name,$array=null){
+        if(is_array($name)){
+            foreach($name as $key=>$value)
+                if(!isset(self::$configs[$key]))
+                    self::$configs[$key]=$value;
+                else
+                    throw new Exception("Cannot modify config '$key'");
         }else{
-            throw new Exception("Cannot modify config '$name'");
+            if(!isset(self::$configs[$name]))
+                self::$configs[$name]=$array;
+            else
+                throw new Exception("Cannot modify config '$name'");
         }
     }
     public static function get($name){

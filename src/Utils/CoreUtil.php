@@ -46,18 +46,37 @@ class CoreUtil{
     public static function parseYML($file){
         return Yaml::parse(file_get_contents($file));
     }
-    /*public static function parsePrint_r($obj){
-        $array=[];
-        if(is_scalar($obj)){
-            $array=['type'=>'scalar','data'=>$obj];
-        }else{
-            $str=print_r($obj,true);
-            if(substr($str,0,5)==="Array"){
-
+    public static function parseENV($file){
+        $lines=explode("\n",file_get_contents($file));
+        $envArray=[];
+        foreach($lines as $line){
+            $line=trim($line);
+            if(strlen($line)==0) continue;
+            if($line[0]=="#") continue;
+            $var=explode("=",$line,2);
+            if(count($var)<2) continue;//ignore error
+            $envArray[$var[0]]=$var[1];
+        }
+        return $envArray;
+    }
+    public static function concatURLs($array){
+        $path=[];
+        $lastSlash=false;
+        foreach($array as $uri){
+            if(empty($uri)) $uri="/";
+            if($uri=="/"){
+                if($lastSlash) continue;
+                $lastSlash=true;
             }else{
-
+                $lastSlash=false;
+                $path[]=$uri;
             }
         }
-        return $array;
-    }*/
+        return implode("/",$path);
+    }
+    public static function parseTemplateString($template,$values){
+        foreach($values as $key=>$value)
+            $template=str_replace("{".$key."}",$value,$template);
+        return $template;
+    }
 }

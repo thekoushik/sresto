@@ -8,6 +8,7 @@ use SRESTO\DTO\Normalizer;
 use SRESTO\Configuration;
 
 class BaseRouter{
+	protected $names=[];
 	protected $router;
 	protected $baseURL='';
 	protected $named_regex=[
@@ -16,7 +17,6 @@ class BaseRouter{
 		'alphanumerics'=>"[a-zA-Z0-9]+"
 	];
 	const SUPPORTED_METHODS=['GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS'];
-	//protected $middlewares=[];
 	protected $beforeProcessors=[];
 	public function __construct($baseurl=''){
 		$this->router=[
@@ -26,21 +26,9 @@ class BaseRouter{
 			'DELETE'=>[],
 			'PATCH'=>[],
 			'HEAD'=>[],
-			'OPTIONS'=>[],
-			'error'=>[
-				'404'=>function($req,$res,$e){$res->setStatus(404)->message("Sorry! Page not found!");},
-				'500'=>function($req,$res,$e){
-					$res->setStatus(500)->setContent([
-						'message'=>"Sorry! Internal server error!",
-						'error'=>$e
-					]);
-				}
-			]
+			'OPTIONS'=>[]
 		];
 		$this->baseURL=$baseurl;
-		
-		$this->router['GET']['\/']=['proc'=>[['class'=>'SRESTO\Processors\DemoProcessor','fn'=>'process']],'params'=>[],'before'=>[]];
-		//$this->refreshMiddlewares();
 	}
 	protected function createPattern($pat,&$param){
 		$newparam=[];
@@ -119,9 +107,6 @@ class BaseRouter{
 	public function head($pattern,$cb,$params=NULL){
 		$this->registerMethod('HEAD',$pattern,$cb,$params);
 	}*/
-	public function error($code,$cb){//$cb should not be array
-		$this->router['error'][strval($code)]=$cb;
-	}
 	protected function registerMethodFromArray($pattern,$array){
 		$params=[];
 		if(array_key_exists('param',$array)){
@@ -141,28 +126,11 @@ class BaseRouter{
 					throw SRESTOException::classNotFoundException($body);
 			}
 		}
+		if(empty($pattern)) $pattern="/";
 		if($pattern[0]!='/') $pattern='/'.$pattern;
 		$pat=$this->createPattern($pattern,$params);
 		foreach($array as $key=>$val){
 			if($key==='BEFORE'){
-				/*foreach(self::SUPPORTED_METHODS as $m){
-					if(isset($this->router[$m][$pat])){
-						if(is_array($val)){
-							foreach($val as $vv){
-								if(in_array($vv,$this->router[$m][$pat]['before'],true))
-									throw new \Exception("Processor $vv already used in $pattern.");
-								else
-									array_unshift($this->router[$m][$pat]['before'],$vv);
-							}
-						}else{
-							if(in_array($val,$this->router[$m][$pat]['before'],true))
-								throw new \Exception("Processor $val already used in $pattern.");
-							else
-								array_unshift($this->router[$m][$pat]['before'],$val);
-						}
-					}else
-						$this->router[$m][$pat]=['proc'=>[],'params'=>$params,'before'=>[$val]];
-				}*/
 				if(!is_array($val))
 					throw new \Exception("Syntax error: BEFORE must be an array.");
 				if(isset($this->beforeProcessors[$pat]))
@@ -196,7 +164,7 @@ class BaseRouter{
 					$classPath=$ex[0];
 					$method=(count($ex)==2)?$ex[1]:'process';
 					//$function = new \ReflectionClass($classPath);
-					$fs[]=['class'=>$classPath,'fn'=>$method];
+					$fs[]=['class'=>$this->getProcessorClassName($classPath),'fn'=>$method];
 				//}
 			}
 			return $fs;
@@ -207,41 +175,31 @@ class BaseRouter{
 			$classPath=$ex[0];
 			$method=(count($ex)==2)?$ex[1]:'process';
 			//$function = new \ReflectionClass($classPath);
-			return [['class'=>$classPath,'fn'=>$method]];
+			return [['class'=>$this->getProcessorClassName($classPath),'fn'=>$method]];
 		}
 	}
-	protected function processRoutes(){
+	protected function getProcessorClassName($processor){
+		if(class_exists($processor))
+			return $processor;
+		else{
+			$temp=explode("\\",$processor);
+			$temp=Configuration::get("processor_package")."\\".end($temp);
+			if(class_exists($temp))
+				return $temp;
+			throw SRESTOException::classNotFoundException($processor);
+		}
+	}
+	public function processRoutes(){
 		foreach($this->beforeProcessors as $pat=>$val)
 			foreach(self::SUPPORTED_METHODS as $m)
 				foreach($this->router[$m] as $pat2=>$val2)
 					if(strpos($pat2,$pat)===0)
 						$this->router[$m][$pat2]['before']+=$val['before'];
 	}
-	/*private function refreshMiddlewares(){
-		$m=Application::getMiddlewares();
-		foreach($m as $key=>$v)
-			if(!isset($this->middlewares[$key]))
-				$this->middlewares[$key]=['active'=>0,'class'=>$v];
+	public function createCacheFromRoutes(){
+		return base64_encode(serialize($this->router));
 	}
-	protected function getActiveMiddlewares(){
-		$middleware=[];
-		foreach($this->middlewares as $key=>$m){
-			if($m['active']!=0)
-				$middleware[]=$m['class'];
-			if($m['active']===1)
-				$this->middlewares[$key]['active']=0; 
-		}
-		return $middleware;
+	public function createRoutesFromCache($cache){
+		$this->router=unserialize(base64_decode($cache));
 	}
-	public function with($middleware){
-		if(is_array($middleware)){
-			foreach($middleware as $m)
-				if($this->middlewares[$m]['active']===0)
-					$this->middlewares[$m]['active']=1;
-		}else if(strlen($middleware)>0){
-			if($this->middlewares[$middleware]['active']===0)
-				$this->middlewares[$middleware]['active']=1;
-		}
-		return $this;
-	}*/
 }
