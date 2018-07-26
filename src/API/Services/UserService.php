@@ -3,16 +3,12 @@ namespace API\Services;
 use SRESTO\Service\ClientServiceInterface;
 use API\Resources\User;
 
-class UserService implements ClientServiceInterface{
-    private $entityManager;
+class UserService{
+    private $entityManager;//https://www.doctrine-project.org/api/orm/2.6/Doctrine/ORM/EntityManager.html
+    private $userRepository;//https://www.doctrine-project.org/api/orm/2.6/Doctrine/ORM/EntityRepository.html
     public function __construct($em){
         $this->entityManager=$em;
-    }
-    public function getClient($client_id){
-        return "[UserService]: ";
-    }
-    public function checkClientCredentials($client_id,$client_secret){
-        return "Hello";
+        $this->userRepository = $this->entityManager->getRepository('API\\Resources\\User');
     }
     public function createUser(User $user){
         $this->entityManager->persist($user);
@@ -20,7 +16,9 @@ class UserService implements ClientServiceInterface{
         return $user;
     }
     public function getUsers(){
-        $userRepository = $this->entityManager->getRepository('API\\Resources\\User');
-        return $userRepository->findAll();
+        return $this->userRepository->findAll();
+    }
+    public function getUser($id){
+        return $this->userRepository->find($id);
     }
 }

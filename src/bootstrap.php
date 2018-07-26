@@ -1,4 +1,6 @@
 <?php
+ini_set('html_errors', false);
+
 $settings=require_once __DIR__ . '/config/settings.php';
 
 date_default_timezone_set($settings['timezone']);
@@ -30,8 +32,6 @@ register_shutdown_function(function() {
     }
 });
 
-//$services=require_once __DIR__ . '/config/services.php';
-
 $processors=CoreUtil::scanClasses(__DIR__,'/API/Processors');
 $services=CoreUtil::scanClasses(__DIR__,'/API/Services');
 
@@ -45,5 +45,3 @@ $entityManager=Application::boot($environment,$settings,$processors,$services);
     $content=$res->getContent();
     var_dump($content);
 });*/
-//Configuration::load(__DIR__."/config/maps");
-//SRESTO\DTO\Normalizer::useMap('maps');

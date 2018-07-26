@@ -18,4 +18,10 @@ class UserProcessor implements RequestProcessor{
     public function create($req,$res){
         $res->setContent($this->userService->createUser($req->getBody()));
     }
+    /**
+     * @RequestMapping(method="GET",path=":id")
+     */
+    public function getUser($req,$res){
+        $res->setContent($this->userService->getUser($req->getParam('id')));
+    }
 }

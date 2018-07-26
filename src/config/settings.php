@@ -4,7 +4,7 @@ return [
     'db'=>[
         'dbname' => 'doctrine_test',
         'user' => 'root',
-        'password' => '',
+        'password' => 'mysql',
         'host' => 'localhost',
         'driver' => 'pdo_mysql'
         /*'driver' => 'pdo_sqlite',
