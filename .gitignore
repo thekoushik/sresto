@@ -1,4 +1,8 @@
-composer.phar
-composer.lock
-/vendor/
-
+/node_modules
+/vendor
+/.idea
+/.vscode
+/.vagrant
+npm-debug.log
+/src/sresto.log
+.env

@@ -1,28 +1,31 @@
 {
-    "name": "thekoushik/sresto",
-    "description": "A very simple lightweight PHP REST Framework",
-    "type": "library",
+    "name": "thekoushik/sresto-starter",
+    "description": "Starter project for SRESTO Framework",
+    "type": "project",
     "license": "MIT",
     "authors": [
         {
-            "name": "Koushik Seal",
+            "name": "thekoushik",
             "email": "thekoushik.universe@gmail.com"
         }
     ],
+    "repositories": [
+        {
+            "type":"git",
+            "url":"https://github.com/thekoushik/sresto.git"
+        }
+    ],
+    "minimum-stability": "dev",
     "require": {
-        "php": ">=5.4"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^4.8"
+        "thekoushik/sresto": "dev-development",
+        "symfony/dependency-injection": "3.3",
+        "symfony/validator": "3.3",
+        "symfony/yaml": "3.3",
+        "doctrine/orm": "2.5.*"
     },
     "autoload": {
         "psr-4": {
-            "SRESTO\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "SRESTO\\Tests\\": "tests/"
+            "API\\":"src/API/"
         }
     }
 }
