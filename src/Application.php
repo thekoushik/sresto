@@ -15,12 +15,13 @@ use SRESTO\Exceptions\Error500Exception;
 use SRESTO\Configuration;
 use SRESTO\Utils\CoreUtil;
 use SRESTO\DTO\Normalizer;
-
 use SRESTO\Common\Annotations\Service;
 use SRESTO\Common\MetaData;
+use SRESTO\Tools\Logger;
 
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
+
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -100,11 +101,7 @@ class Application{
                 $routerCache=file_get_contents($routerCacheFile);
                 self::$routes=Router::root()->createRoutesFromCache($routerCache);
             }else{
-                if($environment['ROUTER_FROM_ANNOTATION']){
-                    Router::createFromAnnotaion($processors);
-                }else{
-                    self::createRouter(CoreUtil::parseYML(Configuration::get("config_path").DIRECTORY_SEPARATOR.'router.yml'));
-                }
+                Router::createFromAnnotaion($processors);
                 self::$routes=Router::root()->processRoutes();
             }
             self::$optionsRoutes=Router::createOptionsFromRoutes(self::$routes);

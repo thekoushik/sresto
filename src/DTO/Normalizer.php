@@ -29,6 +29,7 @@ class Normalizer {
 
     //Normalization Block
     public static function normalize($obj,$track=[],$trackClass=[]){
+        if($obj===NULL) return null;
         if($obj instanceof \Traversable){
             $arr=[];
             $once=true;
