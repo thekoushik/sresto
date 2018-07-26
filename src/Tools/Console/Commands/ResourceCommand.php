@@ -26,13 +26,8 @@ class ResourceCommand extends Command{
     protected function configure(){
         $this->setName("make:resource")
              ->setDescription("Generates resource by asking questions.")
-             ->addOption(
-                'proc',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Generates a processor',
-                true
-            );
+             ->addOption('proc','p',InputOption::VALUE_NONE,'Generates a processor')
+             ->addOption('service','s',InputOption::VALUE_NONE,'Generates a service');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output){
@@ -112,6 +107,20 @@ EOT;
         file_put_contents($filename,CoreUtil::parseTemplateString($template."\n".$body."\n".$body2."\n}\n",$templatevars));
         $output->writeln("Resource ".$clazz." added.");
 
+        $service=$input->getOption('service');
+        if($service){
+            if(!is_string($service))
+                $service=$clazz."Service";
+            
+            $command = $this->getApplication()
+                            ->find('make:service')
+                            ->run(new ArrayInput([
+                                    'command' => 'make:service',
+                                    'class'   => $service,
+                                    'resource'=> $clazz,
+                                    '-f'=> true]), $output);
+        }
+
         $processor=$input->getOption('proc');
         if($processor){
             if(!is_string($processor))
@@ -123,6 +132,6 @@ EOT;
                                     'command' => 'make:processor',
                                     'class'   => $processor]), $output);
         }
-        $io->note("run 'php sresto make:schema' to create table in the database.");
+        $io->note("run 'php sresto make:schema -u' to create table in the database.");
     }
 }

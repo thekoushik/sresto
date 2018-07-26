@@ -1,14 +1,14 @@
 <?php
 namespace SRESTO\MIMEs;
 class MIMEType{
-    const TEXT=0;
-    const JSON = 1;
+    const TEXT=1;
+    const JSON = 0;
     const XML = 2;
     const FORM=3;
 
     const TYPES=[
-        'text/plain',
         'application/json',
+        'text/plain',
         'application/xml',
         'application/x-www-form-urlencoded'
     ];
@@ -21,14 +21,17 @@ class MIMEType{
         return $this->current;
     }
     public static function fromString($str){
-        $r=array_search($str,self::TYPES);
-        return $r!=false?$r:self::TEXT;
+        if($str==="*/*") return self::JSON;/////json for all
+        foreach (self::TYPES as $index=>$value)
+            if( strpos($str,$value)!==false )
+                return $index;
+        return self::TEXT;
     }
     public function parseFrom($str){
         switch($this->current){
-            case 0:
-                return $str;
             case 1:
+                return $str;
+            case 0:
                 return self::parseFromJSON($str);
             case 2:
                 return self::parseFromXML($str);
@@ -41,7 +44,7 @@ class MIMEType{
     }
     public function parseTo($str){
         switch($this->current){
-            case 1:
+            case 0:
                 return self::parseToJSON($str);
             case 2:
                 return self::parseToXML($str);

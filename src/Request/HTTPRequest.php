@@ -41,12 +41,16 @@ class HTTPRequest{
             $this->fetchHeadersWhenURLRewriteIsOff(self::$env);
         else
             $this->fetchHeaders(self::$env);
-        self::$requestData['param']=[];
-        if(self::$requestData['contentLength']<0)
-            $content=file_get_contents('php://input');
-        else
-            $content=file_get_contents('php://input', false , null, -1 , self::$requestData['contentLength'] );
         
+        self::$requestData['param']=[];
+        if(self::$requestData['method']!=="GET"){
+            if(self::$requestData['contentLength']<0)
+                $content=@file_get_contents('php://input');
+            else
+                $content=@file_get_contents('php://input', false , null, -1 , self::$requestData['contentLength'] );
+        }else{
+            $content="";
+        }
         self::$requestData['body']=ContentNegotiator::processRequest(self::$requestData['contentType'],$content);
     }
     
@@ -64,7 +68,7 @@ class HTTPRequest{
         if(isset($env["CONTENT_TYPE"]))
             self::$requestData['contentType']=$env['CONTENT_TYPE'];
         else
-            self::$requestData['contentType']=isset($headers_alt['CONTENT-TYPE'])?$headers_alt['CONTENT-TYPE']:null;
+            self::$requestData['contentType']=isset($headers_alt['CONTENT-TYPE'])?$headers_alt['CONTENT-TYPE']:'application/json';
         if(isset($env["CONTENT_LENGTH"]))
             self::$requestData['contentLength']=intval($env['CONTENT_LENGTH']);
         else
@@ -126,12 +130,12 @@ class HTTPRequest{
         if(isset($env["CONTENT_TYPE"]))
             self::$requestData['contentType']=$env['CONTENT_TYPE'];
         else
-            self::$requestData['contentType']=isset($headers['Content-Type'])?$headers['Content-Type']:'text/plain';
+            self::$requestData['contentType']=isset($headers['Content-Type'])?$headers['Content-Type']:'application/json';
         if(isset($env["CONTENT_LENGTH"]))
             self::$requestData['contentLength']=intval($env['CONTENT_LENGTH']);
         else 
             self::$requestData['contentLength']=isset($headers['Content-Length'])?intval($headers['Content-Length']):-1;
-        self::$requestData['accept']=isset($headers['Accept'])?$headers['Accept']:'text/plain';
+        self::$requestData['accept']=isset($headers['Accept'])?$headers['Accept']:'application/json';
     }
     public function isJSON(){
         return (self::$requestData['contentType']==="application/json");
@@ -141,7 +145,7 @@ class HTTPRequest{
     }
 
     public function getMethod(){return self::$requestData['method'];}
-    public function getBody(){return self::$requestData['body'];}
+    public function getBody(){ return self::$requestData['body']; }
     public function setBody($body){self::$requestData['body']=$body;}
     public function getQuery($name){return self::$requestData['query'][$name];}
     public function getFragment(){return self::$requestData['fragment'];}
@@ -156,5 +160,12 @@ class HTTPRequest{
     public function getData($key=null){return ($key!=null)?self::$requestData['data'][$key]:self::$requestData['data'];}
     public function setData($key,$data=null){
         if($key!=null) self::$requestData['data'][$key]=$data;
+    }
+
+    public function getPagination(){
+        return ['PAGINATION-COUNT'=>self::$requestData['headers']['PAGINATION-COUNT'],
+                'PAGINATION-PAGE'=>self::$requestData['headers']['PAGINATION-PAGE'],
+                'PAGINATION-LIMIT'=>self::$requestData['headers']['PAGINATION-LIMIT']
+               ];
     }
 }

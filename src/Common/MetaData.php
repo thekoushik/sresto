@@ -75,7 +75,7 @@ class MetaData{
         return $this->getPublicMethod("is".strToPascalCase($propertyName));
     }
     public function getPublicSetter($propertyName){
-        return $this->getPublicMethod("set".HstrToPascalCase($propertyName));
+        return $this->getPublicMethod("set".strToPascalCase($propertyName));
     }
     public function getPublicMethod($name){
         $methods=$this->reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
@@ -151,13 +151,23 @@ class MetaData{
         foreach($this->data[self::PROPERTY] as $name=>$prop){
             foreach($prop['annotations'] as $anno){
                 if(get_class($anno)==$annotationClazz)
-                    $member[$name]='property';
+                    $members[$name]='property';
             }
         }
         foreach($this->data[self::METHOD] as $name=>$prop){
             foreach($prop['annotations'] as $anno){
                 if(get_class($anno)==$annotationClazz)
-                    $member[$name]='method';
+                    $members[$name]='method';
+            }
+        }
+        return $members;
+    }
+    public function getPropertiesByAnnotation($annotation){
+        $members=[];
+        foreach($this->data[self::PROPERTY] as $name=>$prop){
+            foreach($prop['annotations'] as $anno){
+                if(get_class($anno)==$annotation)
+                    $members[$name]=$anno;
             }
         }
         return $members;

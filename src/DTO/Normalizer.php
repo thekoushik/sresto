@@ -82,9 +82,9 @@ class Normalizer {
                     $val=$meta->fetchPropertyValue($prop->name,$obj);
                     $map=$meta->getPropertyAnnotation($prop->name,Map::class);
                     if($map)
-                        $new_dest[$map->name]=self::normalize($val,$track,$trackClass);
+                        $new_dest[$map->name]=($val != null)?self::normalize($val,$track,$trackClass):null;
                     else
-                        $new_dest[$prop->name]=self::normalize($val,$track,$trackClass);
+                        $new_dest[$prop->name]=($val != null)?self::normalize($val,$track,$trackClass):null;
                 }
                 return $new_dest;
             }else{

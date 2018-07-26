@@ -17,7 +17,9 @@ class BaseRouter{
 	 * @var array
 	 * @todo make it simple
 	 */
-	protected $names=[];
+	protected $names=[
+		//'hello'=>['GET','/hello']
+	];
 	protected $router;
 	protected $baseURL='';
 	protected $named_regex=[
@@ -27,6 +29,7 @@ class BaseRouter{
 	];
 	const SUPPORTED_METHODS=['GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS'];
 	protected $beforeProcessors=[];
+	protected $afterProcessors=[];
 
 	private static $instance=null;
 
@@ -130,6 +133,12 @@ class BaseRouter{
 				if(isset($this->beforeProcessors[$pat]))
 					throw new \Exception("Processor $val already used in $pattern.");
 				$this->beforeProcessors[$pat]=['params'=>$params,'before'=>$this->parseProcess($val),'body'=>$body];
+			}else if($key==='AFTER'){
+				if(!is_array($val))
+					throw new \Exception("Syntax error: AFTER must be an array.");
+				if(isset($this->afterProcessors[$pat]))
+					throw new \Exception("Processor $val already used in $pattern.");
+				$this->afterProcessors[$pat]=['params'=>$params,'after'=>$this->parseProcess($val),'body'=>$body];
 			}else if(isset($this->router[$key][$pat])){
 				if(is_array($val)){
 					foreach($val as $vv){
@@ -143,7 +152,7 @@ class BaseRouter{
 				else
 					$this->router[$key][$pat]['proc'][]=$val;
 			}else{
-				$this->router[$key][$pat]=['proc'=>$this->parseProcess($val),'params'=>$params,'before'=>[],'body'=>$body];
+				$this->router[$key][$pat]=['proc'=>$this->parseProcess($val),'params'=>$params,'before'=>[],'after'=>[],'body'=>$body];
 			}
 		}
 		
@@ -250,5 +259,20 @@ class BaseRouter{
 				}
 			}
 		}
+	}
+
+	public static function createOptionsFromRoutes($routes){
+		$paths=[];
+		foreach(self::SUPPORTED_METHODS as $m){
+			foreach($routes[$m] as $pat => $cb){
+				if(isset($paths[$pat])){
+					array_push($paths[$pat],$m);
+				}else
+					$paths[$pat]=[$m];
+			}
+		}
+		foreach($paths as $p=>$d)
+			$paths[$p]=implode(',',$paths[$p]);
+		return $paths;
 	}
 }

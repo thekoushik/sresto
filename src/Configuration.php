@@ -7,7 +7,8 @@ use SRESTO\Exceptions\SRESTOException;
 
 final class Configuration{
     private static $configs=["resource_package"=>"API\\Resources",
-                             "processor_package"=>"API\\Processors"];
+                             "processor_package"=>"API\\Processors",
+                             "service_package"=>"API\\Services"];
     /*private static $dtoMetaData=[];
     public static function setDTOMetaData($array){
         if(count(self::$dtoMetaData)==0)
