@@ -73,7 +73,7 @@ class MIMEType{
     public static function parseToJSON($obj){
         return json_encode($obj);
     }
-    private const FILE_MIME_TYPES = array(
+    const FILE_MIME_TYPES = array(
         'txt' => 'text/plain',
         'htm' => 'text/html',
         'html' => 'text/html',
