@@ -1,6 +1,5 @@
 <?php
 namespace SRESTO\Storage;
-use SRESTO\DTO\Serializer;
 
 /**
  * @MappedSuperclass
@@ -38,8 +37,4 @@ abstract class Resource{
     public function onPreUpdate(){
         $this->updated_at = new \DateTime();
     }
-
-    /*public function normalizeMe(){
-        return get_object_vars($this);
-    }*/
 }

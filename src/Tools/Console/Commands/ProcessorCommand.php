@@ -31,11 +31,10 @@ class ProcessorCommand extends Command{
         $template=<<<'EOT'
 <?php
 namespace API\Processors;
-use SRESTO\Processors\RequestProcessor;
 /**
  * @RequestMapping(path="{path}")
  */
-class {clazz} implements RequestProcessor{
+class {clazz} {
     /** @RequestMapping(method="GET") */
     public function process($req,$res){
         $res->message("{clazz} works!");
