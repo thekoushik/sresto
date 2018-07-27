@@ -1,6 +1,5 @@
 <?php
 namespace API\Services;
-use SRESTO\Service\ClientServiceInterface;
 use API\Resources\User;
 
 class UserService{
