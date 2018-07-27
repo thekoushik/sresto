@@ -18,6 +18,7 @@ use SRESTO\DTO\Normalizer;
 use SRESTO\Common\Annotations\Service;
 use SRESTO\Common\MetaData;
 use SRESTO\Tools\Logger;
+use SRESTO\MIMEs\MIMEType;
 
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
@@ -146,9 +147,7 @@ class Application{
             $file='../asset/'.substr($url,strlen(self::$asset_url)+1);
         }
         if (file_exists($file)) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            header('Content-Type: '.finfo_file($finfo, $file));
-            finfo_close($finfo);
+            header('Content-Type: '.MIMEType::getMimeType($file));
             header('Content-Length: ' . filesize($file));
             readfile($file);
         }else{
