@@ -3,8 +3,18 @@ namespace SRESTO\Tests;
 /**
  * Class ExampleTest
  */
-class ExampleTestCase extends \PHPUnit_Framework_TestCase{
-	/**
+class ExampleTest extends \PHPUnit_Framework_TestCase{
+    
+    public function provider()
+    {
+        return [
+            'my named data' => [true],
+            'my data'       => [true],
+            'data 2'        => [true]
+        ];
+    }
+
+    /**
 	 * Test Case 1
 	 */
 	public function testTrueIsTrue(){
@@ -20,11 +30,5 @@ class ExampleTestCase extends \PHPUnit_Framework_TestCase{
         $this->assertTrue($data);
     }
 
-    public function provider()
-    {
-        return [
-            'my named data' => [true],
-            'my data'       => [true]
-        ];
-    }
+    
 }

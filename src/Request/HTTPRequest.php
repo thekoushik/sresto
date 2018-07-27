@@ -3,17 +3,6 @@ namespace SRESTO\Request;
 use SRESTO\MIMEs\ContentNegotiator;
 
 class HTTPRequest{
-    /*protected $method;
-    protected $body;
-    public $originalURL;
-    protected $query;
-    protected $fragment;
-    protected $path;
-    protected $contentType;
-    protected $contentLength;
-    protected $param;
-    protected $accept;
-    protected $headers=[];*/
     protected static $env;
     protected $data=[];
     protected static $requestData=null;

@@ -16,8 +16,8 @@
         <ini name="error_reporting" value="-1"/>
     </php>
     <testsuites>
-        <testsuite name="Router Tests">
-            <directory>tests/</directory>
+        <testsuite name="SRESTO Tests">
+            <directory>./tests</directory>
         </testsuite>
     </testsuites>
     <filter>
