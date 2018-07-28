@@ -245,7 +245,7 @@ class BaseRouter{
 					$reqMethod=$reqMap->method;
 					if(empty($reqMapMethod->method)){
 						if(empty($reqMethod))
-							throw SRESTOException::methodNotDefinedException($path);
+							$reqMethod='GET';//throw SRESTOException::methodNotDefinedException($path);
 					}else if(!empty($reqMap->method))
 						throw SRESTOException::methodReDefineException($reqMap->method);
 					else

@@ -35,12 +35,15 @@ class HTTPRequest{
         if(self::$requestData['method']!=="GET"){
             if(self::$requestData['contentLength']<0)
                 $content=@file_get_contents('php://input');
-            else
+            else{
                 $content=@file_get_contents('php://input', false , null, -1 , self::$requestData['contentLength'] );
+                if(self::$requestData['contentLength']>0 && empty($content))
+                    $content=$_POST;
+            }
         }else{
             $content="";
         }
-        self::$requestData['body']=ContentNegotiator::processRequest(self::$requestData['contentType'],$content);
+        self::$requestData['body']=is_array($content)?$content:ContentNegotiator::processRequest(self::$requestData['contentType'],$content);
     }
     
     private function fetchHeaders($env){

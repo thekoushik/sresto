@@ -5,17 +5,24 @@ class MIMEType{
     const JSON = 0;
     const XML = 2;
     const FORM=3;
+    const MULTIPART=4;
 
+    
     const TYPES=[
         'application/json',
         'text/plain',
         'application/xml',
-        'application/x-www-form-urlencoded'
+        'application/x-www-form-urlencoded',
+        'multipart/form-data'
     ];
     private $current;
+    private $multipartBoundary=null;
 
     public function __construct($str){
         $this->current=self::fromString($str);
+        if($this->current===self::MULTIPART){
+            $this->multipartBoundary=substr($str,strpos($str,'boundary=')+10);
+        }
     }
     public function getType(){
         return $this->current;
@@ -25,6 +32,7 @@ class MIMEType{
         foreach (self::TYPES as $index=>$value)
             if( strpos($str,$value)!==false )
                 return $index;
+        
         return self::TEXT;
     }
     public function parseFrom($str){
@@ -36,7 +44,23 @@ class MIMEType{
             case 2:
                 return self::parseFromXML($str);
             case 3:
+                /*$data=[];
+                if(strpos($str,'Content-Disposition: form-data;')>0){
+                    //var_dump($str);
+                    //var_dump($_POST);
+                    parse_str($str,$data);
+                }else{
+                }*/
                 parse_str($str,$data);
+                return $data;
+            case self::MULTIPART:
+                $arr=explode($this->multipartBoundary,$str);
+                $len=count($arr);
+                $data=[];
+                for($i=1;$i<$len-1;$i++){
+                    list($key,$val)=explode("\"\r\n\r\n",substr($arr[$i],40,strlen($arr[$i])-45),2);
+                    $data[$key]=$val;
+                }
                 return $data;
             default:
                 return $str;
