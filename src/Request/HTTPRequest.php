@@ -1,6 +1,7 @@
 <?php
 namespace SRESTO\Request;
 use SRESTO\MIMEs\ContentNegotiator;
+use SRESTO\Common\File;
 
 class HTTPRequest{
     protected static $env;
@@ -44,6 +45,8 @@ class HTTPRequest{
             $content="";
         }
         self::$requestData['body']=is_array($content)?$content:ContentNegotiator::processRequest(self::$requestData['contentType'],$content);
+        foreach ($_FILES as $key => $value)
+            self::$requestData['files'][$key]=File::fromRaw($_FILES[$key]);
     }
     
     private function fetchHeaders($env){
@@ -101,6 +104,7 @@ class HTTPRequest{
             self::$requestData['query']=[];
         else
             parse_str($query,self::$requestData['query']);
+        self::$requestData['base_url']=(isset($env['HTTPS'])?"https":"http")."://".$env['HTTP_HOST'].$base;
         //#fragment
     }
     private function fetchHeadersWhenURLRewriteIsOff($env){
@@ -135,7 +139,7 @@ class HTTPRequest{
     public function isAJAX(){
         return (bool) (isset(self::$requestData['headers']['X_REQUESTED_WITH']) & (self::$requestData['headers']['X_REQUESTED_WITH'] === 'XMLHttpRequest'));
     }
-
+    public function getBaseURL(){return self::$requestData['base_url'];}
     public function getMethod(){return self::$requestData['method'];}
     public function getBody(){ return self::$requestData['body']; }
     public function setBody($body){self::$requestData['body']=$body;}
@@ -149,11 +153,12 @@ class HTTPRequest{
     public function getAccept(){return self::$requestData['accept'];}
     public function getHeader($name){return self::$requestData['headers'][$name];}
     public function hasHeader($name){return (bool)isset(self::$requestData['headers'][$name]);}
+    public function hasFile($name){return (bool)isset(self::$requestData['files'][$name]);}
+    public function getFile($name){return self::$requestData['files'][$name];}
     public function getData($key=null){return ($key!=null)?self::$requestData['data'][$key]:self::$requestData['data'];}
     public function setData($key,$data=null){
         if($key!=null) self::$requestData['data'][$key]=$data;
     }
-
     public function getPagination(){
         return ['PAGINATION-COUNT'=>self::$requestData['headers']['PAGINATION-COUNT'],
                 'PAGINATION-PAGE'=>self::$requestData['headers']['PAGINATION-PAGE'],

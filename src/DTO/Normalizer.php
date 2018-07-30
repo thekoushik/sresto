@@ -14,6 +14,8 @@ class Normalizer {
         switch(get_class($obj)){
             case 'DateTime':
                 return $obj->format(\DateTime::W3C);
+            case 'Exception':
+                return ['code'=>$obj->getCode(),'message'=>$obj->getMessage()];
             default:
                 return $obj;
         }

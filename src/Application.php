@@ -144,8 +144,9 @@ class Application{
         else{
             if(substr($url, 0, strlen(self::$asset_url)) !== self::$asset_url)
                 return false;
-            $file='../asset/'.substr($url,strlen(self::$asset_url)+1);
+            $file=Configuration::get('asset_path').substr($url,strlen(self::$asset_url)+1);
         }
+        $file=urldecode($file);
         if (file_exists($file)) {
             header('Content-Type: '.MIMEType::getMimeType($file));
             header('Content-Length: ' . filesize($file));
